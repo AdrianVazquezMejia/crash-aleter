@@ -1,0 +1,8 @@
+/venv
+*.pyc
+*.log
+src/__pycache__/
+*.project
+.pydevproject
+/models
+aadog_stats.txt
