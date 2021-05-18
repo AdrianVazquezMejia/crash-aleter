@@ -20,3 +20,9 @@ python3 pip install -r requierements.txt
 ```
 python3 python3 install_requierements.py
 ```
+
+Then you can run the app, by
+
+```
+python3 src/main.py
+```

@@ -4,5 +4,5 @@
 src/__pycache__/
 *.project
 .pydevproject
-/models
+*.blob
 aadog_stats.txt
