@@ -21,6 +21,8 @@ python3 pip install -r requierements.txt
 python3 python3 install_requierements.py
 ```
 
+Make sure you place your model into the __models__ folder.
+
 Then you can run the app, by
 
 ```
