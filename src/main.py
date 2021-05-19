@@ -214,11 +214,16 @@ with dai.Device(pipeline) as device:
             except:
                 label = detection.label
 
-            # sets object's id 
-            if label != "car" or label != "person":
-                obj_id = "other"
-            else:
-                obj_id = label
+            # Draw and show data in the frame
+            if label == "person" or label == "car":
+                cv2.putText(frame, str(label), (x1 + 10, y1 + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                cv2.putText(frame, "{:.2f}".format(detection.confidence*100), (x1 + 10, y1 + 35), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                cv2.putText(frame, f"X: {int(detection.spatialCoordinates.x)} mm", (x1 + 10, y1 + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                cv2.putText(frame, f"Y: {int(detection.spatialCoordinates.y)} mm", (x1 + 10, y1 + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                cv2.putText(frame, f"Z: {int(detection.spatialCoordinates.z)} mm", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+                cv2.rectangle(frame, (x1, y1), (x2, y2), color, cv2.FONT_HERSHEY_SIMPLEX)
+                cv2.circle(frame, (xc, yc), 5, (0,0,255), -1)
+
 
 #---start tracking---------------- should be here def of tracking objects; collecting data for further computations of movement direction and collision point
             # updates person_id and localization in the frame
