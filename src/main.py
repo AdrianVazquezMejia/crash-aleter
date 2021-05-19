@@ -379,21 +379,32 @@ with dai.Device(pipeline) as device:
             # so: t1*v1[1] - t2*v2[1] = pp0[1] - cp0[1]
             #cp0[2] + t1*v1[2] = pp0[2] + t2*v2[2]
             # so: t1*v1[2] - t2*v2[2] = pp0[2] - cp0[2]
-            if len(pcp) != 0 and len(ppp) != 0:   # if there is a car and a person detected
-                for c in pcp:
-                    for p in ppp:
-                        x1, a1, x2, a2, y1, b1, y2, b2, z1, c1, z2, c2 = c[0][0], c[2][0], p[0][0], p[2][0], c[0][1], c[2][1], p[0][1], p[2][1], c[0][2], c[2][2], p[0][2], p[2][2]
-                        t1 = (a2*(y2-y1) - b2*(x2-x1)) / (a2*b1-a1*b2)
-                        t2 = (a1*(y2-y1) - b1*(x2-x1)) / (a2*b1-a1*b2)
-                        if (t1 * c1) - (t2 * c2) == (z2 - z1):  # if these lines do intersect get intersection point as a np.array
-                            intersection_point = c[0] + t1 * c[2]
-                        # if these lines are skew :
+            if len(cars) != 0 and len(persons) != 0:   # if there is a car and a person detected
+                for c in cars:
+                    for p in persons:
+                        ## if the set of coefficients of the direction vectors of two lines, car and person routs, are proportional these lines are parallel to each other
+                        #and their direction vectors Cross Product equals 0
+                        if not any(np.cross(c[2][2], p[2][2])):          #a1/a2 != b1/b2 or b1/b2 != c1/c2 or a1/a2 != c1/c2
+                            x1, a1, x2, a2, y1, b1, y2, b2, z1, c1, z2, c2 = c[2][0][0], c[2][2][0], p[2][0][0], p[2][2][0], c[2][0][1], c[2][2][1], p[2][0][1], p[2][2][1], c[2][0][2], c[2][2][2], p[2][0][2], p[2][2][2]
+                            y2min, y2max = y2 - 100, y2 + 100
+                            dy = 1
+                            notdone = True
+                            while notdone:   # while an intersection point is not found
+                                t1 = (a2*(y2-y1) - b2*(x2-x1)) / (a2*b1-a1*b2)
+                                t2 = (a1*(y2-y1) - b1*(x2-x1)) / (a2*b1-a1*b2)
+                                if (t1 * c1) - (t2 * c2) == (z2 - z1):  # if these lines do intersect get intersection point as a np.array
+                                    intersection_point = c[0] + t1 * c[2]
+                                    c[3] = (intersection_point, p[0])  # insert intersection coords and an id of a person the car can collide with
+                                    p[3] = (intersection_point, c[0])  # insert intersection coords and an id of a car the person can collide with
+                                    notdone = False
+                                # if these lines are skew try new line for person with different person's y coord:
+                                elif y2min <= y2 and y2 <= y2max:
+                                    y2 = y2max - dy
+                                    dy += 1
+                                else:
+                                    notdone = False
 
-
-# if the set of coefficients of the direction vector in two lines L1 and L2 are proportional these lines are parallel to each other
-            #print('pcp: ', pcp)
-            #a1 = pcp[0][0]
-
+#---end tracking-------------------
 
         #logging.info('detections_list: (i, label, x1, y1, X, Y)')
         print('\nF', count, current_time, detections_list)
