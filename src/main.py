@@ -311,36 +311,24 @@ with dai.Device(pipeline) as device:
 
             i += 1
 
-            ##collecting data for a scatterplot
-            plotf.append(count)
-            plotx.append(xc)
-            ploty.append(yc)
-            plotX.append(X)
-            plotY.append(Y)
-            # create a file with the data
-            file = open('aadog_stats.txt', 'a')
-            if X == 0 and Y == 0:
-                file.write('>>>>>>>>>>>>>>>>>>>>>'+'\n')
-                file.write('f:'+str(count)+', '+'xc: '+str(xc)+' yc: '+str(yc)+', '+'X: '+str(X)+' Y: '+str(Y)+' Z: '+str(Z)+'\n')
-                #file.write('--------------------------------------------------'+'\n')
-            else:
-                file.write('f:'+str(count)+', '+'xc: '+str(xc)+' yc: '+str(yc)+', '+'X: '+str(X)+' Y: '+str(Y)+' Z: '+str(Z)+'\n')
-            file.close()
+            ## SCATTERPLOT
+            ###collecting data for a scatterplot
+            #plotf.append(count)
+            #plotx.append(xc)
+            #ploty.append(yc)
+            #plotX.append(X)
+            #plotY.append(Y)
+            ## create a file with the data
+            #file = open('aadog_stats.txt', 'a')
+            #if X == 0 and Y == 0:
+            #    file.write('>>>>>>>>>>>>>>>>>>>>>'+'\n')
+            #    file.write('f:'+str(count)+', '+'xc: '+str(xc)+' yc: '+str(yc)+', '+'X: '+str(X)+' Y: '+str(Y)+' Z: '+str(Z)+'\n')
+            #    #file.write('--------------------------------------------------'+'\n')
+            #else:
+            #    file.write('f:'+str(count)+', '+'xc: '+str(xc)+' yc: '+str(yc)+', '+'X: '+str(X)+' Y: '+str(Y)+' Z: '+str(Z)+'\n')
+            #file.close()
 
-#---end tracking-------------------
             
-            # show data in the frame
-            cv2.putText(frame, str(label), (x1 + 10, y1 + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-            cv2.putText(frame, "{:.2f}".format(detection.confidence*100), (x1 + 10, y1 + 35), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-            #cv2.putText(frame, f"(X,Y,Z): {int(detection.spatialCoordinates.x)}, {int(detection.spatialCoordinates.y)}, {int(detection.spatialCoordinates.z)}mm", (x1 + 10, y1 + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-
-            cv2.putText(frame, f"X: {int(detection.spatialCoordinates.x)} mm", (x1 + 10, y1 + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-            cv2.putText(frame, f"Y: {int(detection.spatialCoordinates.y)} mm", (x1 + 10, y1 + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-            cv2.putText(frame, f"Z: {int(detection.spatialCoordinates.z)} mm", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-
-            cv2.rectangle(frame, (x1, y1), (x2, y2), color, cv2.FONT_HERSHEY_SIMPLEX)
-            cv2.circle(frame, (xc, yc), 5, (0,0,255), -1)
-
             # COMPUTE AN EXTRAPOLATION LINE 
             pcp = []  # list of presumed cars positions
             for car in cars:
