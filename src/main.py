@@ -416,17 +416,18 @@ with dai.Device(pipeline) as device:
         #cv2.imshow("depth", depthFrameColor)
         cv2.imshow("rgb", frame)
 
-        #create scatterplot of y and Y data with gridlines
-        plt.scatter(plotf, ploty, s=1)
-        plt.scatter(plotf, plotY, s=1)
-        plt.minorticks_on()
-        plt.grid(which='minor')
-        plt.grid(which='major')
-        plt.xlabel("Frames")
-        plt.ylabel("The value of the yc_bb(blue) and Y_depth(orange)")
-        plt.title("Discontinuities in the occurrence of the Y, depth coordinates while bb is detected in the frame")
-        if 500 < count < 502: plt.show()
-        #plt.close()
+        ##create scatterplot of y and Y data with gridlines
+        #plt.scatter(plotf, ploty, s=1)
+        #plt.scatter(plotf, plotY, s=1)
+        #plt.minorticks_on()
+        #plt.grid(which='minor')
+        #plt.grid(which='major')
+        #plt.xlabel("Frames")
+        #plt.ylabel("The value of the yc_bb(blue) and Y_depth(orange)")
+        #plt.title("Discontinuities in the occurrence of the Y, depth coordinates while bb is detected in the frame")
+        #if 500 < count < 502: plt.show()
+        ##plt.close()
+
 
 
         if cv2.waitKey(1) == ord('q'):
