@@ -330,11 +330,11 @@ with dai.Device(pipeline) as device:
 
             
             # COMPUTE AN EXTRAPOLATION LINE 
-            pcp = []  # list of presumed cars positions
+            # add first and last point of presumed cars positions and direction vector
             for car in cars:
-                if len(car) > 3:   # if there are in car at least two tuples with coords
+                if len(car) > 5:   # if there are in car at least two tuples with coords
                     # get the first and the last spacial position of a car
-                    (X0,Y0,Z0), (X2,Y2,Z2) = car[2][2:], car[-1][2:]  
+                    (X0,Y0,Z0), (X2,Y2,Z2) = car[4][2:], car[-1][2:]  
                     cp0 = np.array([X0,Y0,Z0])
                     # an equation of a line in 3D space: (x-x1)/l == (y-y1)/m == (z-z1)/n
                     # with direction vector for two points on a straight line: v = <l, m, n> = <x2-x1, y2-y1, z2-z1>
@@ -345,12 +345,12 @@ with dai.Device(pipeline) as device:
                     # compute points of an extrapolation line for a current frame
                     while (cp[0]>=-lim and cp[0]<=lim and cp[1]>=-lim and cp[1]<=lim and cp[2]<=lim*4 ):
                         cp = cp + (10 * v) 
-                    pcp.append((cp0,cp,v))   # append direction vector and first and last point on the line of hypothetical car movement
-            ppp = []  # list of presumed persons positions
+                    car[2] = (cp0, cp, v)   # append direction vector and first and last point on the line of hypothetical car movement
+            # calculate presumed persons positions
             for person in persons:
-                if len(person) > 3:   # if there are in car at least two tuples with coords
+                if len(person) > 5:   # if there are in car at least two tuples with coords
                     # get the first and the last spacial position of a person
-                    (X0,Y0,Z0), (X2,Y2,Z2) = person[2][2:], person[-1][2:]  
+                    (X0,Y0,Z0), (X2,Y2,Z2) = person[4][2:], person[-1][2:]  
                     pp0 = np.array([X0,Y0,Z0])  # point zero == first from the last three person positions
                     # an equation of a line in 3D space: (x-x1)/l == (y-y1)/m == (z-z1)/n
                     # with direction vector v = <l, m, n> = <x2-x1, y2-y1, z2-z1>
@@ -361,7 +361,7 @@ with dai.Device(pipeline) as device:
                     # compute points of an extrapolation line for a current frame
                     while (pp[0]>=-lim and pp[0]<=lim and pp[1]>=-lim and pp[1]<=lim and pp[2]<=lim*4 ):
                         pp = pp + (10 * v) 
-                    ppp.append((pp0,pp,v))   # appends first and last point on the line of hypothetical car movement, also direction vector
+                    person[2] = (pp0, pp, v)   # add first and last point on the line of hypothetical car movement, also direction vector to the person
             
             # COMPUTE AN INTERSECTION POINT IN GIVEN FRAME. 
             # calculations for each pair of car and person
