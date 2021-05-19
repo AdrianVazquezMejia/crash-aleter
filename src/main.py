@@ -233,7 +233,7 @@ with dai.Device(pipeline) as device:
                 # find if an object exist in the list, try until is not find
                 while not_found:   
                     p = persons[j]  #predecessor data
-                    if len(p) > 4:
+                    if len(p) > 6:
                         X, Y, Z = check_deviation_of_depth_coords(p, xc, yc, X, Y, Z)
                     if (abs(p[-1][0]-xc) < 50) and (abs(p[-1][1]-yc) < 50) and (abs(p[-1][2]-X) < 500) and (abs(p[-1][3]-Y) < 500):
                         p_time = time.monotonic()
@@ -241,8 +241,8 @@ with dai.Device(pipeline) as device:
                         # if it is not a "hole" value (depth measurement error), add new coordinates of an object
                         if X != 0 or Y != 0:
                             p.append((xc, yc, X, Y, Z))    # 
-                        if len(p) > 5:  # leave only the last three positions of the person needed to calculate the direction of movement
-                            del p[2]
+                        if len(p) > 7:  # leave only the last three positions of the person needed to calculate the direction of movement
+                            del p[4]
                         not_found = False
                         continue
                     elif j < len(persons)-1:   # try to take next object from the list
@@ -252,11 +252,13 @@ with dai.Device(pipeline) as device:
                         if X != 0 or Y != 0:
                             p_time = time.monotonic()
                             person_id += 1
-                            persons.append([person_id, p_time, (xc, yc, X, Y, Z)])   # append coordinates to the list as a new object position 
+                            persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [0,0,0], (xc, yc, X, Y, Z)])   # append coordinates to the list as a new object position 
                             not_found = False
             elif label == "person":     # append the first object
                 p_time = time.monotonic()
-                persons.append([person_id, p_time, (xc, yc, X, Y, Z)])
+                # append obj id, last possition detection time, extrapolation line parameters(p0,pn,v), intersection point coords and obj id-s, spatial position
+                persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [0,0,0], (xc, yc, X, Y, Z)])
+            
             # check the list of objects to see if there's an object that has come out of a frame for more than 2sec
             l = [] # list of persons which has come out of a frame and should to be deleted from persons tracking list
             for c in range(len(persons)):
@@ -271,7 +273,7 @@ with dai.Device(pipeline) as device:
                 # find if an object exist in the list, try until is not find
                 while not_found:   
                     p = cars[j]  #predecessor data
-                    if len(p) > 4:
+                    if len(p) > 6:
                         X, Y, Z = check_deviation_of_depth_coords(p, xc, yc, X, Y, Z)
                     if (abs(p[-1][0]-xc) < 50) and (abs(p[-1][1]-yc) < 50) and (abs(p[-1][2]-X) < 500) and (abs(p[-1][3]-Y) < 500):
                         p_time = time.monotonic()
@@ -279,8 +281,8 @@ with dai.Device(pipeline) as device:
                         # if it is not a "hole" value (depth measurement error), add new coordinates of an object
                         if X != 0 or Y != 0:
                             p.append((xc, yc, X, Y, Z))    # 
-                        if len(p) > 5:  # leave only the last three positions of the car needed to calculate the direction of movement
-                            del p[2]
+                        if len(p) > 7:  # leave only the last three positions of the car needed to calculate the direction of movement
+                            del p[4]
                         not_found = False
                         continue
                     elif j < len(cars)-1:   # try to take next object from the list
@@ -290,14 +292,12 @@ with dai.Device(pipeline) as device:
                         if X != 0 or Y != 0:
                             p_time = time.monotonic()
                             car_id += 1
-                            cars.append([car_id, p_time, (xc, yc, X, Y, Z)])   # append coordinates to the list as a new object position 
+                            cars.append([car_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [0,0,0], (xc, yc, X, Y, Z)])   # append coordinates to the list as a new object position 
                             not_found = False
             elif label == "car":     # append the first object
                 p_time = time.monotonic()
-                cars.append([car_id, p_time, (xc, yc, X, Y, Z)])
+                cars.append([car_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [0,0,0], (xc, yc, X, Y, Z)])
 
-
-            # updates the tracker  
             # check the list of objects to see if there's an object that has come out of a frame for more than 2sec
             l = [] # list of cars which has come out of a frame and should to be deleted from cars tracking list
             for c in range(len(cars)):
