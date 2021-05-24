@@ -236,7 +236,7 @@ with dai.Device(pipeline) as device:
                     p = persons[j]  #predecessor data
                     if len(p) > 6:
                         X, Y, Z = check_deviation_of_depth_coords(p, xc, yc, X, Y, Z)
-                    if (abs(p[-1][0]-xc) < 50) and (abs(p[-1][1]-yc) < 50) and (abs(p[-1][2]-X) < 500) and (abs(p[-1][3]-Y) < 500):
+                    if (abs(p[-1][0]-xc) < 50) and (abs(p[-1][1]-yc) < 50) and (abs(p[-1][2]-X) < 500) and (abs(p[-1][3]-Y) < 500) and (abs(p[-1][4]-Z) < 1000):
                         p_time = time.monotonic()
                         p[1] = p_time
                         # if it is not a "hole" value (depth measurement error), add new coordinates of an object
@@ -276,7 +276,7 @@ with dai.Device(pipeline) as device:
                     p = cars[j]  #predecessor data
                     if len(p) > 6:
                         X, Y, Z = check_deviation_of_depth_coords(p, xc, yc, X, Y, Z)
-                    if (abs(p[-1][0]-xc) < 50) and (abs(p[-1][1]-yc) < 50) and (abs(p[-1][2]-X) < 500) and (abs(p[-1][3]-Y) < 500):
+                    if (abs(p[-1][0]-xc) < 50) and (abs(p[-1][1]-yc) < 50) and (abs(p[-1][2]-X) < 500) and (abs(p[-1][3]-Y) < 500) and (abs(p[-1][4]-Z) < 1000):
                         p_time = time.monotonic()
                         p[1] = p_time
                         # if it is not a "hole" value (depth measurement error), add new coordinates of an object
