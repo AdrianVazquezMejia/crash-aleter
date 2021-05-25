@@ -97,7 +97,7 @@ if __name__=="__main__":
     spatialDetectionNetwork.input.setBlocking(False)
     spatialDetectionNetwork.setBoundingBoxScaleFactor(0.5)
     spatialDetectionNetwork.setDepthLowerThreshold(100)
-    spatialDetectionNetwork.setDepthUpperThreshold(5000)
+    spatialDetectionNetwork.setDepthUpperThreshold(15000) #(5000)
     
     # Create outputs
     
