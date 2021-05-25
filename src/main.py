@@ -238,9 +238,9 @@ with dai.Device(pipeline) as device:
                         X, Y, Z = check_deviation_of_depth_coords(p, xc, yc, X, Y, Z)
                     if (abs(p[-1][0]-xc) < 50) and (abs(p[-1][1]-yc) < 50) and (abs(p[-1][2]-X) < 500) and (abs(p[-1][3]-Y) < 500) and (abs(p[-1][4]-Z) < 1000):
                         p_time = time.monotonic()
-                        p[1] = p_time
                         # if it is not a "hole" value (depth measurement error), add new coordinates of an object
                         if X != 0 or Y != 0:
+                            p[1] = p_time
                             p.append((xc, yc, X, Y, Z))    # 
                         if len(p) > 7:  # leave only the last three positions of the person needed to calculate the direction of movement
                             del p[4]
@@ -278,9 +278,9 @@ with dai.Device(pipeline) as device:
                         X, Y, Z = check_deviation_of_depth_coords(p, xc, yc, X, Y, Z)
                     if (abs(p[-1][0]-xc) < 50) and (abs(p[-1][1]-yc) < 50) and (abs(p[-1][2]-X) < 500) and (abs(p[-1][3]-Y) < 500) and (abs(p[-1][4]-Z) < 1000):
                         p_time = time.monotonic()
-                        p[1] = p_time
                         # if it is not a "hole" value (depth measurement error), add new coordinates of an object
                         if X != 0 or Y != 0:
+                            p[1] = p_time
                             p.append((xc, yc, X, Y, Z))    # 
                         if len(p) > 7:  # leave only the last three positions of the car needed to calculate the direction of movement
                             del p[4]
