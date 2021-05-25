@@ -389,21 +389,30 @@ with dai.Device(pipeline) as device:
                             x1, a1, x2, a2, y1, b1, y2, b2, z1, c1, z2, c2 = c[2][0][0], c[2][2][0], p[2][0][0], p[2][2][0], c[2][0][1], c[2][2][1], p[2][0][1], p[2][2][1], c[2][0][2], c[2][2][2], p[2][0][2], p[2][2][2]
                             y2min, y2max = y2 - 100, y2 + 100
                             dy = 1
-                            notdone = True
-                            while notdone:   # while an intersection point is not found
-                                t1 = (a2*(y2-y1) - b2*(x2-x1)) / (a2*b1-a1*b2)
-                                t2 = (a1*(y2-y1) - b1*(x2-x1)) / (a2*b1-a1*b2)
-                                if (t1 * c1) - (t2 * c2) == (z2 - z1):  # if these lines do intersect get intersection point as a np.array
-                                    intersection_point = c[0] + t1 * c[2]
-                                    c[3] = (intersection_point, p[0])  # insert intersection coords and an id of a person the car can collide with
-                                    p[3] = (intersection_point, c[0])  # insert intersection coords and an id of a car the person can collide with
-                                    notdone = False
-                                # if these lines are skew try new line for person with different person's y coord:
-                                elif y2min <= y2 and y2 <= y2max:
-                                    y2 = y2max - dy
-                                    dy += 1
-                                else:
-                                    notdone = False
+                            # add a condition to avoid ZeroDivisionError
+                            if a2*b1-a1*b2 != 0:
+                                notdone = True
+                                while notdone:   # while an intersection point is not found
+                                    t1 = (a2*(y2-y1) - b2*(x2-x1)) / (a2*b1-a1*b2)
+                                    t2 = (a1*(y2-y1) - b1*(x2-x1)) / (a2*b1-a1*b2)
+                                    if (t1 * c1) - (t2 * c2) == (z2 - z1):  # if these lines do intersect get intersection point as a np.array
+                                        intersection_point = c[0] + t1 * c[2]
+
+                                        # find objects velocity
+                                        # keep time of detection for each of the three positions, calculate distance and speed
+                                        # not done yet----
+
+                                        c[3] = (intersection_point, p[0])  # insert intersection coords and an id of a person the car can collide with
+                                        p[3] = (intersection_point, c[0])  # insert intersection coords and an id of a car the person can collide with
+                                        notdone = False
+                                    # if lines are skew try new line for person with different person's y coord:
+                                    elif y2min <= y2 and y2 <= y2max:
+                                        y2 = y2max - dy
+                                        dy += 1
+                                    else:
+                                        notdone = False
+                            else:
+                                logging.info("Avoid ZeroDivisionError")
 
 #---end tracking-------------------
 
