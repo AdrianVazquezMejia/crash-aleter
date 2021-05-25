@@ -238,10 +238,10 @@ if __name__=="__main__":
                 
                 # check the list of objects to see if there's an object that has come out of a frame for more than 2sec
                 l = [] # list of persons which has come out of a frame and should to be deleted from persons tracking list
-                for c in range(len(persons)):
-                    if current_time - persons[c][1] > 2:
-                        l.append(c)
-                for e in l: del persons[e]
+                for i in range(len(persons)):
+                    if current_time - persons[i][1] > 2:
+                        l.append(i)
+                persons = [person for idx,person in enumerate(persons) if idx not in l]
     
                 # updates car_id and time and its last position in the frame
                 if cars and (label == "car"):  # if list of cars is not empty and it's a car
@@ -277,10 +277,10 @@ if __name__=="__main__":
     
                 # check the list of objects to see if there's an object that has come out of a frame for more than 2sec
                 l = [] # list of cars which has come out of a frame and should to be deleted from cars tracking list
-                for c in range(len(cars)):
-                    if current_time - cars[c][1] > 2:
-                        l.append(c)
-                for e in l: del cars[e]
+                for i in range(len(cars)):
+                    if current_time - cars[i][1] > 2:
+                        l.append(i)
+                cars = [car for idx,car in enumerate(cars) if idx not in l]
                                 
     
                 #fill out the checking list(for testing purpose)
