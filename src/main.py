@@ -318,10 +318,10 @@ if __name__=="__main__":
                         v = np.array([X2 - X0, Y2 - Y0, Z2 - Z0])
                         cp = cp0 + v  #next car possible position(point on the line)
                         # Limits calculations for X and Y to 100m==100,000mm in the field of view of the camera i.e. from -50m to + 50m, for Z to 200m
-                        lim = 50000
+                        #lim = 50000
                         # compute points of an extrapolation line for a current frame
-                        while (cp[0]>=-lim and cp[0]<=lim and cp[1]>=-lim and cp[1]<=lim and cp[2]<=lim*4 ):
-                            cp = cp + (10 * v) 
+                        #while (cp[0]>=-lim and cp[0]<=lim and cp[1]>=-lim and cp[1]<=lim and cp[2]<=lim*4 ):
+                        #    cp = cp + (10 * v) 
                         car[2] = (cp0, cp, v)   # append direction vector and first and last point on the line of hypothetical car movement
                 # calculate presumed persons positions
                 for person in persons:
@@ -334,10 +334,10 @@ if __name__=="__main__":
                         v = np.array([X2 - X0, Y2 - Y0, Z2 - Z0])
                         pp = pp0 + v  #next car possible position(point on the imaginary line) as a sum of two vectors
                         # Limits of calculations for X and Y to 100m==100,000mm in the field of view of the camera i.e. from -50m to + 50m, for Z to 200m
-                        lim = 50 #BOGUS
+                        #lim = 50 #BOGUS
                         # compute points of an extrapolation line for a current frame
-                        while (pp[0]>=-lim and pp[0]<=lim and pp[1]>=-lim and pp[1]<=lim and pp[2]<=lim*4 ):
-                            pp = pp + (10 * v) 
+                        #while (pp[0]>=-lim and pp[0]<=lim and pp[1]>=-lim and pp[1]<=lim and pp[2]<=lim*4 ):
+                        #    pp = pp + (10 * v) 
                         person[2] = (pp0, pp, v)   # add first and last point on the line of hypothetical car movement, also direction vector to the person
                 
                 # COMPUTE AN INTERSECTION POINT IN GIVEN FRAME. 
