@@ -68,6 +68,7 @@ if __name__=="__main__":
     
     xoutRgb = pipeline.createXLinkOut()
     xoutNN = pipeline.createXLinkOut()
+    
     xoutBoundingBoxDepthMapping = pipeline.createXLinkOut()
     xoutDepth = pipeline.createXLinkOut()
     
@@ -127,7 +128,7 @@ if __name__=="__main__":
         detectionNNQueue = device.getOutputQueue(name="detections", maxSize=4, blocking=False)
         xoutBoundingBoxDepthMapping = device.getOutputQueue(name="boundingBoxDepthMapping", maxSize=4, blocking=False)
         depthQueue = device.getOutputQueue(name="depth", maxSize=4, blocking=False)
-    
+        
         frame = None
         detections = []
     
@@ -150,7 +151,7 @@ if __name__=="__main__":
             inPreview = previewQueue.get()
             inNN = detectionNNQueue.get()
             depth = depthQueue.get()
-    
+
             counter+=1
             current_time = time.monotonic()
             if (current_time - startTime) > 1 :
