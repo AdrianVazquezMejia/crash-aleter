@@ -15,6 +15,6 @@ def stop_alarm():
     
 if __name__ == "__main__":
     print("Module Rpi Output")
-    stop_alarm()
+    start_alarm()
     sleep(2)
     stop_alarm()
