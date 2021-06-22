@@ -8,9 +8,9 @@ def start_alarm():
     visual_alarm.on()
     
 def stop_alarm():
-    sound_alarm = LED(17)
-    sound_alarm.off()
-    visual_alarm = LED(27)
+    sound_alarm = LED(4)
+    sound_alarm.on()
+    visual_alarm = LED(5)
     visual_alarm.off()
     
 if __name__ == "__main__":
