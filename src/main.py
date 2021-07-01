@@ -182,10 +182,10 @@ if __name__=="__main__":
                 #gets the center point of a bounding box
                 xc, yc = (x2+x1)//2, (y2+y1)//2
     
-    
-                X = int(detection.spatialCoordinates.x)
-                Y = int(detection.spatialCoordinates.y)
-                Z = int(detection.spatialCoordinates.z)
+                # get value of spatial coords in meters
+                X = int(detection.spatialCoordinates.x) / 1000
+                Y = int(detection.spatialCoordinates.y) / 1000
+                Z = int(detection.spatialCoordinates.z) / 1000
     
                 try:
                     label = labelMap[detection.label]
