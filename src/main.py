@@ -191,7 +191,13 @@ if __name__=="__main__":
                     label = labelMap[detection.label]
                 except:
                     label = detection.label
-    
+
+                
+                #fill out the checking list
+                detections_list.append((i, label, xc, yc, X, Y, Z))
+                i += 1
+                print(f'\nF>{count}, ct>{current_time}, Detected : {detections_list}')
+                
                 # Draw and show data in the frame
                 if label == "person" or label == "car":
                     cv2.putText(frame, str(label), (x1 + 10, y1 + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
@@ -283,11 +289,6 @@ if __name__=="__main__":
                         l.append(i)
                 cars = [car for idx,car in enumerate(cars) if idx not in l]
                                 
-    
-                #fill out the checking list(for testing purpose)
-                detections_list.append((i, label, xc, yc, X, Y, Z))
-    
-                i += 1
     
                 ## SCATTERPLOT
                 ###collecting data for a scatterplot
@@ -393,8 +394,6 @@ if __name__=="__main__":
     
     #---end tracking-------------------
     
-            #logging.info('detections_list: (i, label, x1, y1, X, Y)')
-            print('\nF', count, current_time, detections_list)
             print('\nCars: F', count, cars)
             print('\nPersons: F', count, persons)
     
