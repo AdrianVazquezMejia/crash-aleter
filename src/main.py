@@ -32,6 +32,13 @@ def clean_redundant_data(objects, current_time):
     return objects
 
 
+def write_id_in_frame(objects):
+    for obj in objects:
+        id, point = obj[0], (obj[-1][0], obj[-1][1] - 10)
+        cv2.putText(frame, f"{id}", point, cv2.FONT_HERSHEY_TRIPLEX, 0.5, (0,0,255))
+    return 
+
+  
 # check if the deviations in the series of coordinates, needed to calculate the direction of movement, are below the assumed threshold
 # reject a random error that occurs in collecting of depth coords X,Y,Z. The object is a list of data: [obj_id, detect_time, (xc, yc, X, Y),(....),(....)]
 def check_deviation_of_depth_coords(obj, xc, yc, X, Y, Z):   # this function should be called if len(obj)>6
@@ -266,6 +273,8 @@ if __name__=="__main__":
                         persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (xc, yc, X, Y, Z)])
                 
                 persons = clean_redundant_data(persons, current_time)
+                
+                write_id_in_frame(persons)
                 
                 
                 # updates car_id and time and its last position in the frame
