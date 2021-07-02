@@ -356,39 +356,24 @@ if __name__=="__main__":
                 print_data_of_detected(cars, 'car')
    
                  
-                # COMPUTE AN EXTRAPOLATION LINE 
-                # add first and last point of presumed cars positions and direction vector
-                for car in cars:
-                    if len(car) > 5:   # if there are in car at least two tuples with coords
-                        # get the first and the last spacial position of a car
-                        (X0,Y0,Z0), (X2,Y2,Z2) = car[4][2:], car[-1][2:]  
-                        cp0 = np.array([X0,Y0,Z0])
-                        # an equation of a line in 3D space: (x-x1)/l == (y-y1)/m == (z-z1)/n
-                        # with direction vector for two points on a straight line: v = <l, m, n> = <x2-x1, y2-y1, z2-z1>
-                        v = np.array([X2 - X0, Y2 - Y0, Z2 - Z0])
-                        cp = cp0 + v  #next car possible position(point on the line)
-                        # Limits calculations for X and Y to 100m==100,000mm in the field of view of the camera i.e. from -50m to + 50m, for Z to 200m
-                        #lim = 50000
-                        # compute points of an extrapolation line for a current frame
-                        #while (cp[0]>=-lim and cp[0]<=lim and cp[1]>=-lim and cp[1]<=lim and cp[2]<=lim*4 ):
-                        #    cp = cp + (10 * v) 
-                        car[2] = (cp0, cp, v)   # append direction vector and first and last point on the line of hypothetical car movement
-                # calculate presumed persons positions
-                for person in persons:
-                    if len(person) > 5:   # if there are in car at least two tuples with coords
-                        # get the first and the last spacial position of a person
-                        (X0,Y0,Z0), (X2,Y2,Z2) = person[4][2:], person[-1][2:]  
-                        pp0 = np.array([X0,Y0,Z0])  # point zero == first from the last three person positions
-                        # an equation of a line in 3D space: (x-x1)/l == (y-y1)/m == (z-z1)/n
-                        # with direction vector v = <l, m, n> = <x2-x1, y2-y1, z2-z1>
-                        v = np.array([X2 - X0, Y2 - Y0, Z2 - Z0])
-                        pp = pp0 + v  #next car possible position(point on the imaginary line) as a sum of two vectors
-                        # Limits of calculations for X and Y to 100m==100,000mm in the field of view of the camera i.e. from -50m to + 50m, for Z to 200m
-                        #lim = 50 #BOGUS
-                        # compute points of an extrapolation line for a current frame
-                        #while (pp[0]>=-lim and pp[0]<=lim and pp[1]>=-lim and pp[1]<=lim and pp[2]<=lim*4 ):
-                        #    pp = pp + (10 * v) 
-                        person[2] = (pp0, pp, v)   # add first and last point on the line of hypothetical car movement, also direction vector to the person
+            # COMPUTE AN OBJECT MOVEMENT DIRECTION LINE
+            # add to the data array first and last point of object position and a line direction vector
+            for car in cars:
+                if len(car) > 5:   # if there are in car at least two tuples with coords
+                    # get the first and the last spacial position of a car
+                    (X0,Y0,Z0), (X2,Y2,Z2) = car[4][2:], car[-1][2:]  
+                    cp0 = np.array([X0,Y0,Z0])
+                    v = np.array([X2 - X0, Y2 - Y0, Z2 - Z0])  #direction vector
+                    cp = cp0 + v  
+                    car[2] = (cp0, cp, v)   # append two points on the line of a car movement and the direction vector
+            for person in persons:
+                if len(person) > 5:  
+                    # get the first and the last spacial position of a person
+                    (X0,Y0,Z0), (X2,Y2,Z2) = person[4][2:], person[-1][2:]  
+                    pp0 = np.array([X0,Y0,Z0])  # point zero == first from the last three person's positions
+                    v = np.array([X2 - X0, Y2 - Y0, Z2 - Z0])
+                    pp = pp0 + v 
+                    person[2] = (pp0, pp, v)  
                 
                 # COMPUTE AN INTERSECTION POINT IN GIVEN FRAME. 
                 # calculations for each pair of car and person
