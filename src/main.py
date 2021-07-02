@@ -295,7 +295,7 @@ if __name__=="__main__":
                         p = cars[j]  #predecessor data
                         if len(p) > 6:
                             X, Y, Z = check_deviation_of_depth_coords(p, xc, yc, X, Y, Z)
-                        if (abs(p[-1][0]-xc) < 50) and (abs(p[-1][1]-yc) < 50) and (abs(p[-1][2]-X) < 500) and (abs(p[-1][3]-Y) < 500) and (abs(p[-1][4]-Z) < 1000):
+                        if (abs(p[-1][0]-xc) < 50) and (abs(p[-1][1]-yc) < 50) and (abs(p[-1][2]-X) < 0.500) and (abs(p[-1][3]-Y) < 0.500) and (abs(p[-1][4]-Z) < 1.000):
                             p_time = time.monotonic()
                             # if it is not a "hole" value (depth measurement error), add new coordinates of an object
                             if X != 0 or Y != 0:
@@ -309,22 +309,27 @@ if __name__=="__main__":
                             j += 1
                         else:            # append a new object
                             # if it is not a "hole" value (depth measurement error), add a new object
-                            if X != 0 or Y != 0:
+                            if not_street and (X != 0 or Y != 0) and Z != 0:
                                 p_time = time.monotonic()
                                 car_id += 1
-                                cars.append([car_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [0,0,0], (xc, yc, X, Y, Z)])   # append coordinates to the list as a new object position 
+                                cars.append([car_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (xc, yc, X, Y, Z)])   # append coordinates to the list as a new object position 
+                                not_found = False
+                            elif Z > 5:
+                                p_time = time.monotonic()
+                                car_id += 1
+                                cars.append([car_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (xc, yc, X, Y, Z)])   # append coordinates to the list as a new object position 
                                 not_found = False
                 elif label == "car":     # append the first object
                     p_time = time.monotonic()
-                    cars.append([car_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [0,0,0], (xc, yc, X, Y, Z)])
+                    if not_street and (X != 0 or Y != 0) and Z != 0:
+                        cars.append([car_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (xc, yc, X, Y, Z)])
+                    elif Z > 5: # distance from the cam is bigger then 5m
+                        cars.append([car_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (xc, yc, X, Y, Z)])
     
-                # check the list of objects to see if there's an object that has come out of a frame for more than 2sec
-                l = [] # list of cars which has come out of a frame and should to be deleted from cars tracking list
-                for i in range(len(cars)):
-                    if current_time - cars[i][1] > 2:
-                        l.append(i)
-                cars = [car for idx,car in enumerate(cars) if idx not in l]
-                                
+                cars = clean_redundant_data(cars, current_time)  
+      
+                write_id_in_frame(cars)
+      
     
                 ## SCATTERPLOT
                 ###collecting data for a scatterplot
