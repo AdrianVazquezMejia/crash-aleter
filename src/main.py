@@ -375,55 +375,85 @@ if __name__=="__main__":
                         pp = pp0 + v 
                         person[2] = (pp0, pp, v)  
                 
-                # COMPUTE AN INTERSECTION POINT IN GIVEN FRAME. 
-                # calculations for each pair of car and person
-                # from given two straight lines (lc for car, lp for person)
-                # for lc: point [x,y,z] = cp0 + t1*v1,   # for lp: [x,y,z] = pp0 + t2*v2
-                # if these two lines actually intersect at a point
-                # from lc obtain:
-                #x = cp0[0] + t1*v1[0]  #y = cp0[1] + t1*v1[1]  #z = cp0[2] + t1*v1[2] 
-                ## from lp obtain:
-                #x = pp0[0] + t2*v2[0]  #y = pp0[1] + t2*v2[1]  #z = pp0[2] + t2*v2[2] 
-                ## equate
-                #cp0[0] + t1*v1[0] = pp0[0] + t2*v2[0]
-                # so: t1*v1[0] - t2*v2[0] = pp0[0] - cp0[0]
-                #cp0[1] + t1*v1[1] = pp0[1] + t2*v2[1]
-                # so: t1*v1[1] - t2*v2[1] = pp0[1] - cp0[1]
-                #cp0[2] + t1*v1[2] = pp0[2] + t2*v2[2]
-                # so: t1*v1[2] - t2*v2[2] = pp0[2] - cp0[2]
+                # COMPUTE AN INTERSECTION/CRASH POINT IN GIVEN FRAME. 
+                # calculations for each pair a car-person
+
                 if len(cars) != 0 and len(persons) != 0:   # if there is a car and a person detected
+                    print('Searching for Pedestrian-Car Crossing Point...')
                     for c in cars:
-                        for p in persons:
-                            ## if the set of coefficients of the direction vectors of two lines, car and person routs, are proportional these lines are parallel to each other
-                            #and their direction vectors Cross Product equals 0
-                            if not any(np.cross(c[2][2], p[2][2])):          #a1/a2 != b1/b2 or b1/b2 != c1/c2 or a1/a2 != c1/c2
-                                x1, a1, x2, a2, y1, b1, y2, b2, z1, c1, z2, c2 = c[2][0][0], c[2][2][0], p[2][0][0], p[2][2][0], c[2][0][1], c[2][2][1], p[2][0][1], p[2][2][1], c[2][0][2], c[2][2][2], p[2][0][2], p[2][2][2]
-                                y2min, y2max = y2 - 100, y2 + 100
-                                dy = 1
-                                # add a condition to avoid ZeroDivisionError
-                                if a2*b1-a1*b2 != 0:
-                                    notdone = True
-                                    while notdone:   # while an intersection point is not found
-                                        t1 = (a2*(y2-y1) - b2*(x2-x1)) / (a2*b1-a1*b2)
-                                        t2 = (a1*(y2-y1) - b1*(x2-x1)) / (a2*b1-a1*b2)
-                                        if (t1 * c1) - (t2 * c2) == (z2 - z1):  # if these lines do intersect get intersection point as a np.array
-                                            intersection_point = c[0] + t1 * c[2]
-    
-                                            # find objects velocity
-                                            # keep time of detection for each of the three positions, calculate distance and speed
-                                            # not done yet----
-    
-                                            c[3] = (intersection_point, p[0])  # insert intersection coords and an id of a person the car can collide with
-                                            p[3] = (intersection_point, c[0])  # insert intersection coords and an id of a car the person can collide with
-                                            notdone = False
-                                        # if lines are skew try new line for person with different person's y coord:
-                                        elif y2min <= y2 and y2 <= y2max:
-                                            y2 = y2max - dy
-                                            dy += 1
-                                        else:
-                                            notdone = False
-                                else:
-                                    logging.info("Avoid ZeroDivisionError")
+                        if len(c) > 6:
+
+                            #print('car id: ', c[0])
+
+                            for p in persons:
+                                if len(p) > 6:
+                                    p[3] = delete_unnecessary_crash_points(p[3], cars)  # update crash points list
+
+                                    #print('person id: ', p[0])
+
+                                    ## if the set of coefficients of the direction vectors of two lines, car and person routs, are proportional these lines are parallel to each other
+                                    #and their direction vectors Cross Product equals 0
+                                    if any(np.cross(c[2][2], p[2][2])):         
+                                        # get a point on the car line and its direction vector coefficients 
+                                        x_1, a_1, y_1, b_1, z_1, c_1 = c[2][0][0], c[2][2][0], c[2][0][1], c[2][2][1], c[2][0][2], c[2][2][2]
+
+                #                        print('car position, y_1: {},  z_1: {}'.format(c[2][0][1], c[2][0][2]))
+                #                        print('car vector, a_1: {:.3f}, b_1: {:.3f},  c_1: {:.3f}'.format(c[2][2][0], c[2][2][1], c[2][2][2]))
+
+                                        # car line equation: x=a_1*t+x_1, y=b_1*t+y_1, z=c_1*t+z_1
+                                        # a normal vector n to a person's plane it is a np.cross product of two vectors (pp0->pp1, pp0->pp2) 
+                                        # where pp0, pp1, pp2 are three points in the plane, and pp2 differs from pp0 only by the value of the y coordinate increased by 10
+                                        # vector pp0->pp1 == direction vector == p[2][2]
+                                        # vector pp0->pp2 == [p[2][0][0] - p[2][0][0], p[2][0][1] + 10 - p[2][0][1], p[2][0][2] - p[2][0][2]] == [0, 10, 0]
+                                        # Get a normal vector of a person's plane
+                                        n = np.cross(p[2][2], np.array([0, 10, 0]))
+                                        nx, ny, nz = n[0], n[1], n[2]
+
+                #                        print('normal vector, nx: {:.3f}, ny: {:.3f}, nz: {:.3f}'.format(nx, ny, nz))
+
+                                        # equation of the plane nx*(x-x0) + ny*(y-y0) + nz*(z-z0) == 0  => 
+                                        # get a point on the plane
+                                        x0, y0, z0 = p[2][0][0], p[2][0][1], p[2][0][2] #coords of pp0
+                                        d = -(nx*x0 + ny*y0 + nz*z0)
+                                        # as nx*x + ny*y + nz*z + d = 0
+                                        # so nx*(a_1*t + x_1) + n_y*(b_1*t + y_1) + nz*(c_1*t + z_1) + d == 0
+                                        if (nx*a_1 + ny*b_1 + nz*c_1) != 0:
+                                            t = -(d + nx*x_1 + ny*y_1 + nz*z_1) / (nx*a_1 + ny*b_1 + nz*c_1)
+
+                #                            print(f'coefficient t: {t}')
+
+                                            # intersection point
+                                            xi = (a_1*t + x_1)
+                                            yi = (b_1*t + y_1)
+                                            zi = (c_1*t + z_1)
+
+                                            #print('  Intersection x,y,z: ', xi,yi,zi)
+
+                                            # distance to the crash point:
+                                            p_distance = np.sqrt(sum(e**2 for e in (np.array([xi, yi, zi]) - p[2][1])))  # pedestrian
+                                            c_distance = np.sqrt(sum(e**2 for e in (np.array([xi, yi, zi]) - c[2][1])))  # car
+
+                                            #print(f'  Person distance to the collision point: {p_distance:.3f}m')
+
+                                            p_last_pos = p[2][1]  # last position of a pedestrian                                        
+                                            p_time = p[1]         # the time of detecting the last position of a pedestrian
+                                            # insert intersection coords, an id of a car the person can collide with, distance to the hypothetical crash point etc.:
+                                            alarm_flag_p, p[3] = replace_insert_crashdata(p[3], [np.array([xi, yi, zi]), c[0], p_distance, p_time, (0, 0), p_last_pos])
+
+                                            print(f'    Person{p[0]} Alarm Flag: {alarm_flag_p}')
+
+                                            #print(f'  Car distance to the collision point: {c_distance:.3f}m')
+
+                                            # insert intersection coords, an id of a person the car can collide with, distance to the hypothetical crash point etc.:
+                                            alarm_flag_c, c[3] = replace_insert_crashdata(c[3], [np.array([xi, yi, zi]), p[0], c_distance, c[1], (0, 0), c[2][1]])
+
+                                            print(f'    Car{c[0]} Alarm Flag: {alarm_flag_c}')
+
+                                            ## ALARM
+                                            if alarm_flag_p and alarm_flag_c:
+                                                print(f'ALARM!!! ALARM!!! Person{p[0]} is going to collide with Car{c[0]}')    # send_alarm_message_to_device()
+
+                            #print('END OF THE LOOP OF SEARCHING FOR THE CROSSING POINT OF A CAR WITH A PEDESTRIAN PLANE ')
     
     #---end tracking-------------------
     
