@@ -356,24 +356,24 @@ if __name__=="__main__":
                 print_data_of_detected(cars, 'car')
    
                  
-            # COMPUTE AN OBJECT MOVEMENT DIRECTION LINE
-            # add to the data array first and last point of object position and a line direction vector
-            for car in cars:
-                if len(car) > 5:   # if there are in car at least two tuples with coords
-                    # get the first and the last spacial position of a car
-                    (X0,Y0,Z0), (X2,Y2,Z2) = car[4][2:], car[-1][2:]  
-                    cp0 = np.array([X0,Y0,Z0])
-                    v = np.array([X2 - X0, Y2 - Y0, Z2 - Z0])  #direction vector
-                    cp = cp0 + v  
-                    car[2] = (cp0, cp, v)   # append two points on the line of a car movement and the direction vector
-            for person in persons:
-                if len(person) > 5:  
-                    # get the first and the last spacial position of a person
-                    (X0,Y0,Z0), (X2,Y2,Z2) = person[4][2:], person[-1][2:]  
-                    pp0 = np.array([X0,Y0,Z0])  # point zero == first from the last three person's positions
-                    v = np.array([X2 - X0, Y2 - Y0, Z2 - Z0])
-                    pp = pp0 + v 
-                    person[2] = (pp0, pp, v)  
+                # COMPUTE AN OBJECT MOVEMENT DIRECTION LINE
+                # add to the data array first and last point of object position and a line direction vector
+                for car in cars:
+                    if len(car) > 5:   # if there are in car at least two tuples with coords
+                        # get the first and the last spacial position of a car
+                        (X0,Y0,Z0), (X2,Y2,Z2) = car[4][2:], car[-1][2:]  
+                        cp0 = np.array([X0,Y0,Z0])
+                        v = np.array([X2 - X0, Y2 - Y0, Z2 - Z0])  #direction vector
+                        cp = cp0 + v  
+                        car[2] = (cp0, cp, v)   # append two points on the line of a car movement and the direction vector
+                for person in persons:
+                    if len(person) > 5:  
+                        # get the first and the last spacial position of a person
+                        (X0,Y0,Z0), (X2,Y2,Z2) = person[4][2:], person[-1][2:]  
+                        pp0 = np.array([X0,Y0,Z0])  # point zero == first from the last three person's positions
+                        v = np.array([X2 - X0, Y2 - Y0, Z2 - Z0])
+                        pp = pp0 + v 
+                        person[2] = (pp0, pp, v)  
                 
                 # COMPUTE AN INTERSECTION POINT IN GIVEN FRAME. 
                 # calculations for each pair of car and person
