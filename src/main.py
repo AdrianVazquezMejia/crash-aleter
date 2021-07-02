@@ -69,6 +69,8 @@ def check_deviation_of_depth_coords(obj, xc, yc, X, Y, Z):   # this function sho
         Z = ((obj[4][4] + obj[5][4] + obj[6][4]) / 3) * 1.01
     if abs(obj[-1][0] - xc) <= dx and abs(obj[-1][1] - yc) <= dy and abs(obj[-1][4] - Z) > dZ and (obj[-1][4] - Z) > 0:
         Z = ((obj[4][4] + obj[5][4] + obj[6][4]) / 3) * 0.99
+        
+        
     return X,Y,Z
 
 
