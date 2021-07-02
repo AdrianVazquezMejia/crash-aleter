@@ -73,8 +73,27 @@ def check_deviation_of_depth_coords(obj, xc, yc, X, Y, Z):   # this function sho
         
     return X,Y,Z
 
+  
 
+def print_data_of_detected(obj_list, obj_name):
+    oppos_id = "person"
+    if obj_name == "person":
+        oppos_id = "car"
+    if obj_list:
+        for p in obj_list:
+            print(f'  <{obj_name}_{p[0]}>  3Dpos1:{p[2][0]}, 3Dlast_pos:{p[2][1]}')                                # t:{p[1]}, dir_vect:{p[2][2]}')
+            if p[3]:
+                for e in p[3]:
+                    print(f'       intersect_coords: {e[0]},  intersect with {oppos_id}_{e[1]}')                        #, detect_time:{e[3]:.3f}')
+                    print(f'       distance2collision_point: {e[2]:.3f},  ({obj_name}_speed, time2crash): {e[4]}')      #, last_pos:{e[5]}')
+            if len(p) == 7: print(f'       all_coords>  pos1:{p[4]},  pos2:{p[5]},  last_pos:{p[6]}')
+            if len(p) == 6: print(f'       all_coords>  pos1:{p[4]},  pos2:{p[5]}')
+            if len(p) == 5: print(f'       all_coords>  pos1:{p[4]}')
+    else:
+        print(f'No {obj_name} in the designated field.')
 
+        
+        
 
 '''
 Spatial detection network demo.
@@ -330,7 +349,13 @@ if __name__=="__main__":
       
                 write_id_in_frame(cars)
       
-    
+                
+                # print selected data from trackers
+                print('IN FRAME:')
+                print_data_of_detected(persons, 'person')
+                print_data_of_detected(cars, 'car')
+   
+  
                 ## SCATTERPLOT
                 ###collecting data for a scatterplot
                 #plotf.append(count)
