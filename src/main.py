@@ -18,6 +18,9 @@ syncNN = True
 
 nnBlobPath = str((Path(__file__).parent / Path('../models/mobilenet.blob')).resolve().absolute())
 
+not_street = False   # 'False' for real life distances, I mean street. 'True' for experiments with toys.
+
+
 
 # check if the deviations in the series of coordinates, needed to calculate the direction of movement, are below the assumed threshold
 # reject a random error that occurs in collecting of depth coords X,Y,Z. The object is a list of data: [obj_id, detect_time, (xc, yc, X, Y),(....),(....)]
@@ -212,7 +215,7 @@ if __name__=="__main__":
     
     #---start tracking---------------- should be here def of tracking objects; collecting data for further computations of movement direction and collision point
                 # updates person_id and localization in the frame
-                if persons and (label == "person"):  # if list of cars is not empty and it's a car
+                if persons and (label == "person"):  # if list of persons is not empty and it's a person
                     j = 0  #index of person in persons
                     not_found = True
                     # find if an object exist in the list, try until is not find
@@ -220,7 +223,7 @@ if __name__=="__main__":
                         p = persons[j]  #predecessor data
                         if len(p) > 6:
                             X, Y, Z = check_deviation_of_depth_coords(p, xc, yc, X, Y, Z)
-                        if (abs(p[-1][0]-xc) < 50) and (abs(p[-1][1]-yc) < 50) and (abs(p[-1][2]-X) < 500) and (abs(p[-1][3]-Y) < 500) and (abs(p[-1][4]-Z) < 1000):
+                        if (abs(p[-1][0]-xc) < 50) and (abs(p[-1][1]-yc) < 50) and (abs(p[-1][2]-X) < 0.500) and (abs(p[-1][3]-Y) < 0.500) and (abs(p[-1][4]-Z) < 1.000):
                             p_time = time.monotonic()
                             # if it is not a "hole" value (depth measurement error), add new coordinates of an object
                             if X != 0 or Y != 0:
@@ -230,19 +233,27 @@ if __name__=="__main__":
                                 del p[4]
                             not_found = False
                             continue
-                        elif j < len(persons)-1:   # try to take next object from the list
+                        elif j < len(persons)-1:   # try to get next object from the list
                             j += 1
                         else:            # append a new object
                             # if it is not a "hole" value (depth measurement error), add a new object
-                            if X != 0 or Y != 0:
+                            if not_street and (X != 0 or Y != 0) and Z != 0:    # for very close distances
                                 p_time = time.monotonic()
                                 person_id += 1
-                                persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [0,0,0], (xc, yc, X, Y, Z)])   # append coordinates to the list as a new object position 
+                                persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (xc, yc, X, Y, Z)])   # append coordinates to the list as a new object position 
+                                not_found = False
+                            elif Z > 5:        # for real life
+                                p_time = time.monotonic()
+                                person_id += 1
+                                persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (xc, yc, X, Y, Z)])   # append coordinates to the list as a new object position 
                                 not_found = False
                 elif label == "person":     # append the first object
                     p_time = time.monotonic()
                     # append obj id, last possition detection time, extrapolation line parameters(p0,pn,v), intersection point coords and obj id-s, spatial position
-                    persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [0,0,0], (xc, yc, X, Y, Z)])
+                    if not_street and (X != 0 or Y != 0) and Z != 0:
+                        persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (xc, yc, X, Y, Z)])
+                    elif Z > 5: # if distance from the cam is bigger then 5m
+                        persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (xc, yc, X, Y, Z)])
                 
                 # check the list of objects to see if there's an object that has come out of a frame for more than 2sec
                 l = [] # list of persons which has come out of a frame and should to be deleted from persons tracking list
