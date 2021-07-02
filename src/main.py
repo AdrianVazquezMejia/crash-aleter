@@ -94,7 +94,43 @@ def print_data_of_detected(obj_list, obj_name):
 
         
         
+def replace_insert_crashdata(collide_list, new_intersect):
+    alarm_flag = False
+    if collide_list:
+        i = 0
+        not_found = True
+        while not_found:
+            crash_event = collide_list[i]          # [np.array([xi, yi, zi]), c[0], p_distance, p_time, (speed, time_to_collision), p_last_position]
+            if new_intersect[1] == crash_event[1]:  # obj id
+                crash_event[0] = new_intersect[0]   # intersection
+                dd = np.sqrt(sum(e**2 for e in (new_intersect[5] - crash_event[5])))
+                dt = new_intersect[3] - crash_event[3]   # sec
+                if dt > 0:
+                    speed = dd/dt   # m/s
+                else: speed = 0.0
+                crash_event[2] = new_intersect[2]   # distance to collision
+                if speed > 0:
+                    time_to_collision = crash_event[2] / speed
+                else: time_to_collision = 0.0
+                crash_event[3] = new_intersect[3]   # time of detection the last position
+                crash_event[4] = (speed, time_to_collision)
+                if time_to_collision < 1 and time_to_collision > 0:   # if time to collision < 1sec
+                    alarm_flag = True
+                not_found = False
+                continue
+            elif i < (len(collide_list) - 1):
+                i += 1
+            else:
+                collide_list.append(new_intersect)
+    else:
+        collide_list.append(new_intersect)
 
+        
+    return alarm_flag, collide_list
+
+        
+    
+        
 '''
 Spatial detection network demo.
     Performs inference on RGB camera and retrieves spatial location coordinates: x,y,z relative to the center of depth map.
