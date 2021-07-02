@@ -355,25 +355,7 @@ if __name__=="__main__":
                 print_data_of_detected(persons, 'person')
                 print_data_of_detected(cars, 'car')
    
-  
-                ## SCATTERPLOT
-                ###collecting data for a scatterplot
-                #plotf.append(count)
-                #plotx.append(xc)
-                #ploty.append(yc)
-                #plotX.append(X)
-                #plotY.append(Y)
-                ## create a file with the data
-                #file = open('aadog_stats.txt', 'a')
-                #if X == 0 and Y == 0:
-                #    file.write('>>>>>>>>>>>>>>>>>>>>>'+'\n')
-                #    file.write('f:'+str(count)+', '+'xc: '+str(xc)+' yc: '+str(yc)+', '+'X: '+str(X)+' Y: '+str(Y)+' Z: '+str(Z)+'\n')
-                #    #file.write('--------------------------------------------------'+'\n')
-                #else:
-                #    file.write('f:'+str(count)+', '+'xc: '+str(xc)+' yc: '+str(yc)+', '+'X: '+str(X)+' Y: '+str(Y)+' Z: '+str(Z)+'\n')
-                #file.close()
-    
-                
+                 
                 # COMPUTE AN EXTRAPOLATION LINE 
                 # add first and last point of presumed cars positions and direction vector
                 for car in cars:
