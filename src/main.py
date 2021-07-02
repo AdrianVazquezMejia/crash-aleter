@@ -21,6 +21,16 @@ nnBlobPath = str((Path(__file__).parent / Path('../models/mobilenet.blob')).reso
 not_street = False   # 'False' for real life distances, I mean street. 'True' for experiments with toys.
 
 
+# check the list of objects to see if there's an object that has come out of a frame for more than 2sec and delete it
+def clean_redundant_data(objects, current_time):
+    l = [] # list of indices of cars which has come out of a frame and should be deleted from cars tracking list
+    for i in range(len(objects)):
+        if current_time - objects[i][1] > 2:
+            l.append(i)
+    objects = [obj for idx,obj in enumerate(objects) if idx not in l]
+
+    return objects
+
 
 # check if the deviations in the series of coordinates, needed to calculate the direction of movement, are below the assumed threshold
 # reject a random error that occurs in collecting of depth coords X,Y,Z. The object is a list of data: [obj_id, detect_time, (xc, yc, X, Y),(....),(....)]
@@ -255,13 +265,9 @@ if __name__=="__main__":
                     elif Z > 5: # if distance from the cam is bigger then 5m
                         persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (xc, yc, X, Y, Z)])
                 
-                # check the list of objects to see if there's an object that has come out of a frame for more than 2sec
-                l = [] # list of persons which has come out of a frame and should to be deleted from persons tracking list
-                for i in range(len(persons)):
-                    if current_time - persons[i][1] > 2:
-                        l.append(i)
-                persons = [person for idx,person in enumerate(persons) if idx not in l]
-    
+                persons = clean_redundant_data(persons, current_time)
+                
+                
                 # updates car_id and time and its last position in the frame
                 if cars and (label == "car"):  # if list of cars is not empty and it's a car
                     j = 0  #index of car in cars
