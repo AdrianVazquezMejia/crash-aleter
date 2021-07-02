@@ -39,31 +39,38 @@ def write_id_in_frame(objects):
     return 
 
   
-# check if the deviations in the series of coordinates, needed to calculate the direction of movement, are below the assumed threshold
-# reject a random error that occurs in collecting of depth coords X,Y,Z. The object is a list of data: [obj_id, detect_time, (xc, yc, X, Y),(....),(....)]
+# check if the deviations in series of coordinates, needed to calculate the direction of object movement, are below the assumed threshold
+# reject a random error that occurs in depth coords X,Y,Z
 def check_deviation_of_depth_coords(obj, xc, yc, X, Y, Z):   # this function should be called if len(obj)>6
-    #compute an average deviation of object coords for three last positions and multiply by 2
+    #compute an average deviation of object coords for the last three positions and multiply by 2, then calculate delta
     dx = (abs(obj[4][0] - obj[5][0]) + abs(obj[5][0] - obj[6][0]))//2 * 2
-    if dx <= 5: dx = 5
+    if dx <= 5: 
+        dx = 5
     dy = (abs(obj[4][1] - obj[5][1]) + abs(obj[5][1] - obj[6][1]))//2 * 2
-    if dy <= 5: dy = 5
-    dX = (abs(obj[4][2] - obj[5][2]) + abs(obj[5][2] - obj[6][2]))//2 * 2
-    if dX <= 10: dX = 50
-    dY = (abs(obj[4][3] - obj[5][3]) + abs(obj[5][3] - obj[6][3]))//2 * 2
-    if dY <= 10: dY = 50
-    dZ = (abs(obj[4][4] - obj[5][4]) + abs(obj[5][4] - obj[6][4]))//2 * 2
-    if dZ <= 10: dZ = 50
+    if dy <= 5: 
+        dy = 5
+    dX = (abs(obj[4][2] - obj[5][2]) + abs(obj[5][2] - obj[6][2]))/2 * 2
+    if dX < abs(0.1 * obj[6][2]): 
+        dX = obj[6][2] * 0.2
+    dY = (abs(obj[4][3] - obj[5][3]) + abs(obj[5][3] - obj[6][3]))/2 * 2
+    if dY < abs(0.1 * obj[6][3]): 
+        dY = obj[6][3] * 0.2
+    dZ = (abs(obj[4][4] - obj[5][4]) + abs(obj[5][4] - obj[6][4]))/2 * 2
+    if dZ < abs(0.1 * obj[6][4]): 
+        dZ = obj[6][4] * 0.1
 
-    # if xc, yc is within the mean deviation and value of X or Y is large ignore it
-    if abs(obj[-1][0] - xc) <= dx and abs(obj[-1][1] - yc) <= dy and abs(obj[-1][2] - X) > dX*2:
-        X = obj[-1][2]
-    if abs(obj[-1][0] - xc) <= dx and abs(obj[-1][1] - yc) <= dy and abs(obj[-1][3] - Y) > dY*2:
-        Y = obj[-1][3]
-    if abs(obj[-1][0] - xc) <= dx and abs(obj[-1][1] - yc) <= dy and abs(obj[-1][4] - Z) > dZ*2:
-        Z = obj[-1][4]
-
-
+    # if xc, yc is within the mean deviation and value of X or Y or Z is very different then the last one, ignore this depth value 
+    # and assigne a calculated value which differ from the mean no more than 0.01
+    if abs(obj[-1][0] - xc) <= dx and abs(obj[-1][1] - yc) <= dy and abs(obj[-1][2] - X) > (dX * 2):
+        X = ((obj[4][2] + obj[5][2] + obj[6][2]) / 3) * 1.01
+    if abs(obj[-1][0] - xc) <= dx and abs(obj[-1][1] - yc) <= dy and abs(obj[-1][3] - Y) > (dY * 2):
+        Y = ((obj[4][3] + obj[5][3] + obj[6][3]) / 3) * 1.01
+    if abs(obj[-1][0] - xc) <= dx and abs(obj[-1][1] - yc) <= dy and abs(obj[-1][4] - Z) > dZ and (obj[-1][4] - Z) < 0:
+        Z = ((obj[4][4] + obj[5][4] + obj[6][4]) / 3) * 1.01
+    if abs(obj[-1][0] - xc) <= dx and abs(obj[-1][1] - yc) <= dy and abs(obj[-1][4] - Z) > dZ and (obj[-1][4] - Z) > 0:
+        Z = ((obj[4][4] + obj[5][4] + obj[6][4]) / 3) * 0.99
     return X,Y,Z
+
 
 
 
