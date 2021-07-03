@@ -161,8 +161,6 @@ if __name__=="__main__":
     xoutBoundingBoxDepthMapping.setStreamName("boundingBoxDepthMapping")
     xoutDepth.setStreamName("depth")
     
-    #colorCam.setPreviewSize(672, 384) # preview output resized to fit the pedestrian-and-vehicle-detector-adas-0001.blob
-    #colorCam.setPreviewSize(512, 512) # preview output resized to fit the person-vehicle-bike-detection-crossroad-1016.blob
     colorCam.setPreviewSize(300, 300)
     colorCam.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
     colorCam.setInterleaved(False)
@@ -227,8 +225,6 @@ if __name__=="__main__":
         person_id = 0
         count = 0   # frame number
     
-        #create lists for scatterplot data
-        plotf, plotx, ploty, plotX, plotY = [], [], [], [], [] 
     
         while True:
             
@@ -244,12 +240,8 @@ if __name__=="__main__":
                 startTime = current_time
     
             frame = inPreview.getCvFrame()
-            #depthFrame = depth.getFrame()
-    
-            #depthFrameColor = cv2.normalize(depthFrame, None, 255, 0, cv2.NORM_INF, cv2.CV_8UC1)
-            #depthFrameColor = cv2.equalizeHist(depthFrameColor)
-            #depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_HOT)
             detections = inNN.detections
+        
             count += 1
             i = 0   # bb number in a frame
             detections_list = []
@@ -294,7 +286,7 @@ if __name__=="__main__":
 
     
     
-    #---start tracking---------------- should be here def of tracking objects; collecting data for further computations of movement direction and collision point
+    #---start tracking---------------- 
                 # updates person_id and localization in the frame
                 if persons and (label == "person"):  # if list of persons is not empty and it's a person
                     j = 0  #index of person in persons
@@ -413,72 +405,40 @@ if __name__=="__main__":
                 
                 # COMPUTE AN INTERSECTION/CRASH POINT IN GIVEN FRAME. 
                 # calculations for each pair a car-person
-
                 if len(cars) != 0 and len(persons) != 0:   # if there is a car and a person detected
                     print('Searching for Pedestrian-Car Crossing Point...')
                     for c in cars:
                         if len(c) > 6:
-
-                            #print('car id: ', c[0])
-
                             for p in persons:
                                 if len(p) > 6:
                                     p[3] = delete_unnecessary_crash_points(p[3], cars)  # update crash points list
-
-                                    #print('person id: ', p[0])
-
                                     ## if the set of coefficients of the direction vectors of two lines, car and person routs, are proportional these lines are parallel to each other
                                     #and their direction vectors Cross Product equals 0
                                     if any(np.cross(c[2][2], p[2][2])):         
-                                        # get a point on the car line and its direction vector coefficients 
+                                        # get a point on the car's line and its direction vector coefficients 
                                         x_1, a_1, y_1, b_1, z_1, c_1 = c[2][0][0], c[2][2][0], c[2][0][1], c[2][2][1], c[2][0][2], c[2][2][2]
-
-                #                        print('car position, y_1: {},  z_1: {}'.format(c[2][0][1], c[2][0][2]))
-                #                        print('car vector, a_1: {:.3f}, b_1: {:.3f},  c_1: {:.3f}'.format(c[2][2][0], c[2][2][1], c[2][2][2]))
-
-                                        # car line equation: x=a_1*t+x_1, y=b_1*t+y_1, z=c_1*t+z_1
-                                        # a normal vector n to a person's plane it is a np.cross product of two vectors (pp0->pp1, pp0->pp2) 
-                                        # where pp0, pp1, pp2 are three points in the plane, and pp2 differs from pp0 only by the value of the y coordinate increased by 10
-                                        # vector pp0->pp1 == direction vector == p[2][2]
-                                        # vector pp0->pp2 == [p[2][0][0] - p[2][0][0], p[2][0][1] + 10 - p[2][0][1], p[2][0][2] - p[2][0][2]] == [0, 10, 0]
                                         # Get a normal vector of a person's plane
                                         n = np.cross(p[2][2], np.array([0, 10, 0]))
                                         nx, ny, nz = n[0], n[1], n[2]
-
-                #                        print('normal vector, nx: {:.3f}, ny: {:.3f}, nz: {:.3f}'.format(nx, ny, nz))
-
-                                        # equation of the plane nx*(x-x0) + ny*(y-y0) + nz*(z-z0) == 0  => 
-                                        # get a point on the plane
+                                        # get a point zero on the person's plane
                                         x0, y0, z0 = p[2][0][0], p[2][0][1], p[2][0][2] #coords of pp0
                                         d = -(nx*x0 + ny*y0 + nz*z0)
-                                        # as nx*x + ny*y + nz*z + d = 0
-                                        # so nx*(a_1*t + x_1) + n_y*(b_1*t + y_1) + nz*(c_1*t + z_1) + d == 0
+                                        # find car's line t coefficient
                                         if (nx*a_1 + ny*b_1 + nz*c_1) != 0:
                                             t = -(d + nx*x_1 + ny*y_1 + nz*z_1) / (nx*a_1 + ny*b_1 + nz*c_1)
-
-                #                            print(f'coefficient t: {t}')
-
                                             # intersection point
                                             xi = (a_1*t + x_1)
                                             yi = (b_1*t + y_1)
                                             zi = (c_1*t + z_1)
-
-                                            #print('  Intersection x,y,z: ', xi,yi,zi)
-
                                             # distance to the crash point:
                                             p_distance = np.sqrt(sum(e**2 for e in (np.array([xi, yi, zi]) - p[2][1])))  # pedestrian
                                             c_distance = np.sqrt(sum(e**2 for e in (np.array([xi, yi, zi]) - c[2][1])))  # car
-
-                                            #print(f'  Person distance to the collision point: {p_distance:.3f}m')
-
                                             p_last_pos = p[2][1]  # last position of a pedestrian                                        
                                             p_time = p[1]         # the time of detecting the last position of a pedestrian
                                             # insert intersection coords, an id of a car the person can collide with, distance to the hypothetical crash point etc.:
                                             alarm_flag_p, p[3] = replace_insert_crashdata(p[3], [np.array([xi, yi, zi]), c[0], p_distance, p_time, (0, 0), p_last_pos])
 
                                             print(f'    Person{p[0]} Alarm Flag: {alarm_flag_p}')
-
-                                            #print(f'  Car distance to the collision point: {c_distance:.3f}m')
 
                                             # insert intersection coords, an id of a person the car can collide with, distance to the hypothetical crash point etc.:
                                             alarm_flag_c, c[3] = replace_insert_crashdata(c[3], [np.array([xi, yi, zi]), p[0], c_distance, c[1], (0, 0), c[2][1]])
@@ -489,40 +449,22 @@ if __name__=="__main__":
                                             if alarm_flag_p and alarm_flag_c:
                                                 print(f'ALARM!!! ALARM!!! Person{p[0]} is going to collide with Car{c[0]}')    # send_alarm_message_to_device()
 
-                            #print('END OF THE LOOP OF SEARCHING FOR THE CROSSING POINT OF A CAR WITH A PEDESTRIAN PLANE ')
                             # draw in the frame a line connecting each pair of a person and a car for which time_to_collision is computed
                             if p[3]: 
                                 for crash in p[3]:
                                     if crash[4][1] != 0:  # time to collision
-                                        carid = crash[1]  # a car involved in
-                                        for v in cars:    # v -- vehicle
+                                        carid = crash[1]  # id of the car involved in
+                                        for v in cars:    # v-vehicle
                                             if v[0] == carid:
                                                 car_2d_pos = (v[6][0],v[6][1])     # location in frame
                                                 person_2d_pos = (p[6][0],p[6][1])
                                                 #TODO: pobrac wspol. przestrzenne do wykresu
                                                 cv2.line(frame, person_2d_pos, car_2d_pos, (255,0,0), 1)
     
-    #---end tracking-------------------
-    
-            print('\nCars: F', count, cars)
-            print('\nPersons: F', count, persons)
     
     
             cv2.putText(frame, "NN fps: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
-            #cv2.imshow("depth", depthFrameColor)
             cv2.imshow("rgb", frame)
-    
-            ##create scatterplot of y and Y data with gridlines
-            #plt.scatter(plotf, ploty, s=1)
-            #plt.scatter(plotf, plotY, s=1)
-            #plt.minorticks_on()
-            #plt.grid(which='minor')
-            #plt.grid(which='major')
-            #plt.xlabel("Frames")
-            #plt.ylabel("The value of the yc_bb(blue) and Y_depth(orange)")
-            #plt.title("Discontinuities in the occurrence of the Y, depth coordinates while bb is detected in the frame")
-            #if 500 < count < 502: plt.show()
-            ##plt.close()
     
     
     
