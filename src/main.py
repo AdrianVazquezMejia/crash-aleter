@@ -128,8 +128,16 @@ def replace_insert_crashdata(collide_list, new_intersect):
         
     return alarm_flag, collide_list
 
-        
-    
+
+  
+def delete_unnecessary_crash_points(crashpoints, cars):
+    for carnumber in [crashpoint[1] for crashpoint in crashpoints]:
+        if carnumber not in [vehicle[0] for vehicle in cars]:
+            crashpoints = [crashpoint for crashpoint in crashpoints if crashpoint[1] != carnumber]
+
+    return crashpoints
+
+   
         
 '''
 Spatial detection network demo.
