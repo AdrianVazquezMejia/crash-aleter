@@ -7,6 +7,8 @@ import time
 import matplotlib.pyplot as plt
 import os
 
+from alarm_device import alarm_device
+
 import logging
 
 logging.getLogger().setLevel(logging.INFO)
@@ -455,7 +457,9 @@ if __name__=="__main__":
 
                                             ## ALARM
                                             if alarm_flag_p and alarm_flag_c:
-                                                print(f'ALARM!!! ALARM!!! Person{p[0]} is going to collide with Car{c[0]}')    # send_alarm_message_to_device()
+                                                print(f'ALARM!!! ALARM!!! Person{p[0]} is going to collide with Car{c[0]}')   
+                                            # raise an alarm or print a reassuring message    
+                                            alarm_device(alarm_flag_p, alarm_flag_c, p[0], c[0])
 
                             # draw in the frame a line connecting each pair of a person and a car for which time_to_collision is computed
                             if p[3]: 
