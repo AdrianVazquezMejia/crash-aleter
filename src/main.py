@@ -490,6 +490,17 @@ if __name__=="__main__":
                                                 print(f'ALARM!!! ALARM!!! Person{p[0]} is going to collide with Car{c[0]}')    # send_alarm_message_to_device()
 
                             #print('END OF THE LOOP OF SEARCHING FOR THE CROSSING POINT OF A CAR WITH A PEDESTRIAN PLANE ')
+                            # draw in the frame a line connecting each pair of a person and a car for which time_to_collision is computed
+                            if p[3]: 
+                                for crash in p[3]:
+                                    if crash[4][1] != 0:  # time to collision
+                                        carid = crash[1]  # a car involved in
+                                        for v in cars:    # v -- vehicle
+                                            if v[0] == carid:
+                                                car_2d_pos = (v[6][0],v[6][1])     # location in frame
+                                                person_2d_pos = (p[6][0],p[6][1])
+                                                #TODO: pobrac wspol. przestrzenne do wykresu
+                                                cv2.line(frame, person_2d_pos, car_2d_pos, (255,0,0), 1)
     
     #---end tracking-------------------
     
