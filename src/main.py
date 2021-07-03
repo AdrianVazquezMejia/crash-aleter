@@ -132,10 +132,11 @@ def replace_insert_crashdata(collide_list, new_intersect):
 
 
   
-def delete_unnecessary_crash_points(crashpoints, cars):
-    for carnumber in [crashpoint[1] for crashpoint in crashpoints]:
-        if carnumber not in [vehicle[0] for vehicle in cars]:
-            crashpoints = [crashpoint for crashpoint in crashpoints if crashpoint[1] != carnumber]
+def delete_unnecessary_crash_points(crashpoints, objects_heading_2_collision):
+    if len(crashpoints) != 0:
+        for obj_number in [crashpoint[1] for crashpoint in crashpoints]:
+            if obj_number not in [obj[0] for obj in objects_heading_2_collision]:
+                crashpoints = [crashpoint for crashpoint in crashpoints if crashpoint[1] != obj_number]
 
     return crashpoints
 
@@ -419,6 +420,7 @@ if __name__=="__main__":
                     print('Searching for Pedestrian-Car Crossing Point...')
                     for c in cars:
                         if len(c) > 6:
+                            c[3] = delete_unnecessary_crash_points(c[3], persons)
                             for p in persons:
                                 if len(p) > 6:
                                     p[3] = delete_unnecessary_crash_points(p[3], cars)  # update crash points list
