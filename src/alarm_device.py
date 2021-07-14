@@ -15,7 +15,7 @@ def alarm_device(pedestrian_flag, car_flag, pedestrian_id, car_id):
         visual_alarm = LED(5)
         visual_alarm.off()
     else:
-        print("No cause for alarm :))
+        print("No cause for alarm ")
     return
 
 
