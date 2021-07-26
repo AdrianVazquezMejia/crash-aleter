@@ -26,10 +26,12 @@ valid_objects = ["car", "person"]
 
 # check the list of objects to see if there's an object that has come out of a frame for more than 2sec and delete it
 def clean_redundant_data(objects, current_time):
-    l = [] # list of indices of cars which has come out of a frame and should be deleted from cars tracking list
-    for bb_number in range(len(objects)):
-        if current_time - objects[bb_number][1] > 2:
-            l.append(bb_number)
+    l = [] # list of indices of objects (cars or persons) which has come out of a frame and should be deleted from cars or persons tracking list
+    # check for each object in list of objects:
+    for i in range(len(objects)):
+        if current_time - objects[i][1] > 2:
+            l.append(i)
+    # create new list
     objects = [obj for idx,obj in enumerate(objects) if idx not in l]
 
     return objects
