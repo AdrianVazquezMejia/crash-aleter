@@ -99,13 +99,15 @@ def print_data_of_detected(obj_list, obj_name):
 
         
         
+# Update data related to the potencial collision for each person or car
 def replace_insert_crashdata(collide_list, new_intersect):
-    alarm_flag = False
+    alarm_flag = False  # Suppose that specific object(e.g. person) is not in danger of a collision 
     if collide_list:
-        bb_number = 0
-        is_person_on_the_list = True
-        while is_person_on_the_list:
-            crash_event = collide_list[bb_number]          # [np.array([xi, yi, zi]), c[0], p_distance, p_time, (speed, time_to_collision), p_last_position]
+        i = 0    # an index of the event in the collide_list of that specific object(e.g. a person)
+        # search for an object(e.g. a car), if it exist on the list of potential participants of a collision with that specific object(in this case a person)
+        not_found = True  
+        while not_found:
+            crash_event = collide_list[i]          # [np.array([xi, yi, zi]), c[0], p_distance, p_time, (speed, time_to_collision), p_last_position]
             if new_intersect[1] == crash_event[1]:  # obj id
                 crash_event[0] = new_intersect[0]   # intersection
                 dd = np.sqrt(sum(e**2 for e in (new_intersect[5] - crash_event[5])))
@@ -121,18 +123,16 @@ def replace_insert_crashdata(collide_list, new_intersect):
                 crash_event[4] = (speed, time_to_collision)
                 if time_to_collision < 1 and time_to_collision > 0:   # if time to collision < 1sec
                     alarm_flag = True
-                is_person_on_the_list = False
+                not_found = False
                 continue
-            elif bb_number < (len(collide_list) - 1):
-                bb_number += 1
+            elif i < (len(collide_list) - 1):
+                i += 1
             else:
                 collide_list.append(new_intersect)
     else:
         collide_list.append(new_intersect)
 
-        
     return alarm_flag, collide_list
-
 
   
 def delete_unnecessary_crash_points(crashpoints, objects_heading_2_collision):
