@@ -305,7 +305,7 @@ if __name__=="__main__":
                     
                     # Draw data in the frame
                     if object_label in valid_objects:
-                        frame = draw_data_on_frame(frame,detection)
+                        frame = draw_data_on_frame(frame, detection, object_label, fps, x_min, x_max, y_min, y_max, x_center, y_center, x_depth, y_depth, z_depth)
         
         #---start tracking---------------- 
                     # updates person_id and localization in the frame
