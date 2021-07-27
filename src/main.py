@@ -309,38 +309,39 @@ if __name__=="__main__":
         
         #---start tracking---------------- 
                     # updates person_id and localization in the frame
-                    if len(persons)>0 and (object_label in valid_objects):  # if list of persons is not empty and it's a person
+                    if len(persons) > 0 and (object_label == valid_objects[1]):  # if list of persons is not empty and it's a person
                         person_index = 0  #index of person in persons
-                        is_person_on_the_list = True
-                        # find if an object exist in the list, try until is not find
-                        while is_person_on_the_list:   
-                            predecersor_person = persons[person_index]  #predecessor data
-                            if len(predecersor_person) > 6:
-                                x_depth, y_depth, z_depth = check_deviation_of_depth_coords(predecersor_person, x_center, y_center, x_depth, y_depth, z_depth)
-                            if (abs(predecersor_person[-1][0]-x_center) < 50) and (abs(predecersor_person[-1][1]-y_center) < 50) and (abs(predecersor_person[-1][2]-x_depth) < 0.500) and (abs(predecersor_person[-1][3]-y_depth) < 0.500) and (abs(predecersor_person[-1][4]-z_depth) < 1.000):
+                        person_not_found = True
+                        # Check if the object(person) is already on the list. Keep trying until the object is found or the list is over.
+                        while person_not_found:   
+                            predecessor_person = persons[person_index]  #predecessor data
+                            if len(predecessor_person) > 6:
+                                x_depth, y_depth, z_depth = check_deviation_of_depth_coords(predecessor_person, x_center, y_center, x_depth, y_depth, z_depth)
+                            if (abs(predecessor_person[-1][0]-x_center) < 50) and (abs(predecessor_person[-1][1]-y_center) < 50) and (abs(predecessor_person[-1][2]-x_depth) < 0.500) and (abs(predecessor_person[-1][3]-y_depth) < 0.500) and (abs(predecessor_person[-1][4]-z_depth) < 1.000):
                                 p_time = time.monotonic()
                                 # if it is not a "hole" value (depth measurement error), add new coordinates of an object
                                 if x_depth != 0 or y_depth != 0:
-                                    predecersor_person[1] = p_time
-                                    predecersor_person.append((x_center, y_center, x_depth, y_depth, z_depth))    # 
-                                if len(predecersor_person) > 7:  # leave only the last three positions of the person needed to calculate the direction of movement
-                                    del predecersor_person[4]
-                                is_person_on_the_list = False
+                                    predecessor_person[1] = p_time
+                                    predecessor_person.append((x_center, y_center, x_depth, y_depth, z_depth))    # 
+                                if len(predecessor_person) > 7:  # leave only the last three positions of the person needed to calculate the direction of movement
+                                    del predecessor_person[4]
+                                person_not_found = False
                                 continue
                             elif person_index < len(persons)-1:   # try to get next object from the list
                                 person_index += 1
-                            else:            # append a new object
-                                # if it is not a "hole" value (depth measurement error), add a new object
+                            # if a predecessor of the object (person) is not found in the list of persons, append a new object (person)
+                            else:            
+                                # check if it is not a "hole" value (depth measurement error)
                                 if not_street and (x_depth != 0 or y_depth != 0) and z_depth != 0:    # for very close distances
                                     p_time = time.monotonic()
                                     person_id += 1
                                     persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])   # append coordinates to the list as a new object position 
-                                    is_person_on_the_list = False
+                                    person_not_found = False
                                 elif z_depth > 5:        # for real life
                                     p_time = time.monotonic()
                                     person_id += 1
                                     persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])   # append coordinates to the list as a new object position 
-                                    is_person_on_the_list = False
+                                    person_not_found = False
                     elif object_label == "person":     # append the first object
                         p_time = time.monotonic()
                         # append obj id, last possition detection time, extrapolation line parameters(p0,pn,v), intersection point coords and obj id-s, spatial position
