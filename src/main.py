@@ -37,7 +37,7 @@ def clean_redundant_data(objects, current_time):
     return objects
 
 
-def write_id_in_frame(objects):
+def write_id_in_frame(objects, frame):
     for obj in objects:
         id, point = obj[0], (obj[-1][0], obj[-1][1] - 10)
         cv2.putText(frame, f"{id}", point, cv2.FONT_HERSHEY_TRIPLEX, 0.5, (0,0,255))
@@ -144,39 +144,23 @@ def delete_unnecessary_crash_points(crashpoints, objects_heading_2_collision):
     return crashpoints
 
    
-def draw_data_on_frame(frame, detection):
-    height = frame.shape[0]
-    width  = frame.shape[1]
-
-    x_min = int(detection.xmin * width)
-    x_max = int(detection.xmax * width)
-    y_min = int(detection.ymin * height)
-    y_max = int(detection.ymax * height)
-    #gets the center point of a bounding box
-    x_center, y_center = (x_max+x_min)//2, (y_max+y_min)//2
-
-    # get value of spatial coords in meters
-    x_depth = int(detection.spatialCoordinates.x) / 1000
-    y_depth = int(detection.spatialCoordinates.y) / 1000
-    z_depth = int(detection.spatialCoordinates.z) / 1000
-
-    try:
-        object_label = labelMap[detection.label]
-    except:
-        object_label = detection.label
-        
+def draw_data_on_frame(frame, detection, object_label, fps, x_min, x_max, y_min, y_max, x_center, y_center, x_depth, y_depth, z_depth):
     cv2.putText(frame, str(object_label), (x_min + 10, y_min + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
     cv2.putText(frame, "{:.2f}".format(detection.confidence*100), (x_min + 10, y_min + 35), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
     cv2.putText(frame, f"x_depth: {x_depth} m", (x_min + 10, y_min + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
     cv2.putText(frame, f"y_depth: {y_depth} m", (x_min + 10, y_min + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
     cv2.putText(frame, f"z_depth: {z_depth} m", (x_min + 10, y_min + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
     cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), color, cv2.FONT_HERSHEY_SIMPLEX)
-    cv2.circle(frame, (x_center, y_center), 5, (0,0,255), -1)     
+    cv2.circle(frame, (x_center, y_center), 5, (0,0,255), -1)  
+    cv2.putText(frame, "NN fps: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
+    
     return frame 
+ 
+
 '''
-Spatial detection network demo.
     Performs inference on RGB camera and retrieves spatial location coordinates: x,y,z relative to the center of depth map.
 '''
+
 if __name__=="__main__":
 
     if len(sys.argv) > 1:
@@ -367,7 +351,7 @@ if __name__=="__main__":
                     
                     persons = clean_redundant_data(persons, current_time)
                     
-                    write_id_in_frame(persons)
+                    write_id_in_frame(persons, frame)
                     
                     
                     # updates car_id and time and its last position in the frame
@@ -412,7 +396,7 @@ if __name__=="__main__":
         
                     cars = clean_redundant_data(cars, current_time)  
           
-                    write_id_in_frame(cars)
+                    write_id_in_frame(cars, frame)
           
                     
                     # print selected data from trackers
@@ -503,7 +487,6 @@ if __name__=="__main__":
         
         
         
-                cv2.putText(frame, "NN fps: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
                 cv2.imshow("rgb", frame)
                 out.write(frame)
         
