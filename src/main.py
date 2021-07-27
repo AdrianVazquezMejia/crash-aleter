@@ -474,7 +474,7 @@ if __name__=="__main__":
                                                 # raise an alarm or print a reassuring message    
                                                 alarm_device(alarm_flag_p, alarm_flag_c, predecersor_person[0], c[0])
     
-                                # draw in the frame a line connecting each pair of a person and a car for which time_to_collision is computed
+                                # in the frame, draw a line connecting each person-car pair for which the time_to_collision is calculated
                                 if predecersor_person[3]: 
                                     for crash in predecersor_person[3]:
                                         if crash[4][1] != 0:  # time to collision
