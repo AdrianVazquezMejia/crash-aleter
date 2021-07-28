@@ -26,16 +26,18 @@ valid_objects = ["car", "person"]
 
 # check the list of objects to see if there's an object that has come out of a frame for more than 2sec and delete it
 def clean_redundant_data(objects, current_time):
-    l = [] # list of indices of cars which has come out of a frame and should be deleted from cars tracking list
-    for bb_number in range(len(objects)):
-        if current_time - objects[bb_number][1] > 2:
-            l.append(bb_number)
+    l = [] # list of indices of objects (cars or persons) which has come out of a frame and should be deleted from cars or persons tracking list
+    # check for each object in list of objects:
+    for i in range(len(objects)):
+        if current_time - objects[i][1] > 2:
+            l.append(i)
+    # create new list
     objects = [obj for idx,obj in enumerate(objects) if idx not in l]
 
     return objects
 
 
-def write_id_in_frame(objects):
+def write_id_in_frame(objects, frame):
     for obj in objects:
         id, point = obj[0], (obj[-1][0], obj[-1][1] - 10)
         cv2.putText(frame, f"{id}", point, cv2.FONT_HERSHEY_TRIPLEX, 0.5, (0,0,255))
@@ -97,13 +99,15 @@ def print_data_of_detected(obj_list, obj_name):
 
         
         
+# Update data related to the potencial collision for each person or car
 def replace_insert_crashdata(collide_list, new_intersect):
-    alarm_flag = False
+    alarm_flag = False  # Suppose that specific object(e.g. person) is not in danger of a collision 
     if collide_list:
-        bb_number = 0
-        is_person_on_the_list = True
-        while is_person_on_the_list:
-            crash_event = collide_list[bb_number]          # [np.array([xi, yi, zi]), c[0], p_distance, p_time, (speed, time_to_collision), p_last_position]
+        i = 0    # an index of the event in the collide_list of that specific object(e.g. a person)
+        # search for an object(e.g. a car), if it exist on the list of potential participants of a collision with that specific object(in this case a person)
+        not_found = True  
+        while not_found:
+            crash_event = collide_list[i]          # [np.array([xi, yi, zi]), c[0], p_distance, p_time, (speed, time_to_collision), p_last_position]
             if new_intersect[1] == crash_event[1]:  # obj id
                 crash_event[0] = new_intersect[0]   # intersection
                 dd = np.sqrt(sum(e**2 for e in (new_intersect[5] - crash_event[5])))
@@ -119,18 +123,16 @@ def replace_insert_crashdata(collide_list, new_intersect):
                 crash_event[4] = (speed, time_to_collision)
                 if time_to_collision < 1 and time_to_collision > 0:   # if time to collision < 1sec
                     alarm_flag = True
-                is_person_on_the_list = False
+                not_found = False
                 continue
-            elif bb_number < (len(collide_list) - 1):
-                bb_number += 1
+            elif i < (len(collide_list) - 1):
+                i += 1
             else:
                 collide_list.append(new_intersect)
     else:
         collide_list.append(new_intersect)
 
-        
     return alarm_flag, collide_list
-
 
   
 def delete_unnecessary_crash_points(crashpoints, objects_heading_2_collision):
@@ -141,7 +143,6 @@ def delete_unnecessary_crash_points(crashpoints, objects_heading_2_collision):
 
     return crashpoints
 
-   
 def draw_data_on_frame(frame, detection):
     global height
     global width
@@ -155,19 +156,23 @@ def draw_data_on_frame(frame, detection):
     global y_depth 
     global z_depth
     global object_label
-        
+
     cv2.putText(frame, str(object_label), (x_min + 10, y_min + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
     cv2.putText(frame, "{:.2f}".format(detection.confidence*100), (x_min + 10, y_min + 35), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
     cv2.putText(frame, f"x_depth: {x_depth} m", (x_min + 10, y_min + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
     cv2.putText(frame, f"y_depth: {y_depth} m", (x_min + 10, y_min + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
     cv2.putText(frame, f"z_depth: {z_depth} m", (x_min + 10, y_min + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
     cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), color, cv2.FONT_HERSHEY_SIMPLEX)
-    cv2.circle(frame, (x_center, y_center), 5, (0,0,255), -1)     
+    cv2.circle(frame, (x_center, y_center), 5, (0,0,255), -1)  
+    cv2.putText(frame, "NN fps: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
+    
     return frame 
+ 
+
 '''
-Spatial detection network demo.
     Performs inference on RGB camera and retrieves spatial location coordinates: x,y,z relative to the center of depth map.
 '''
+
 if __name__=="__main__":
 
     if len(sys.argv) > 1:
@@ -312,42 +317,43 @@ if __name__=="__main__":
                     
                     # Draw data in the frame
                     if object_label in valid_objects:
-                        frame = draw_data_on_frame(frame,detection)
+                        frame = draw_data_on_frame(frame, detection, object_label, fps, x_min, x_max, y_min, y_max, x_center, y_center, x_depth, y_depth, z_depth)
         
         #---start tracking---------------- 
                     # updates person_id and localization in the frame
-                    if len(persons)>0 and (object_label in valid_objects):  # if list of persons is not empty and it's a person
+                    if len(persons) > 0 and (object_label == valid_objects[1]):  # if list of persons is not empty and it's a person
                         person_index = 0  #index of person in persons
-                        is_person_on_the_list = True
-                        # find if an object exist in the list, try until is not find
-                        while is_person_on_the_list:   
-                            predecersor_person = persons[person_index]  #predecessor data
-                            if len(predecersor_person) > 6:
-                                x_depth, y_depth, z_depth = check_deviation_of_depth_coords(predecersor_person, x_center, y_center, x_depth, y_depth, z_depth)
-                            if (abs(predecersor_person[-1][0]-x_center) < 50) and (abs(predecersor_person[-1][1]-y_center) < 50) and (abs(predecersor_person[-1][2]-x_depth) < 0.500) and (abs(predecersor_person[-1][3]-y_depth) < 0.500) and (abs(predecersor_person[-1][4]-z_depth) < 1.000):
+                        person_not_found = True
+                        # Check if the object(person) is already on the list. Keep trying until the object is found or the list is over.
+                        while person_not_found:   
+                            predecessor_person = persons[person_index]  #predecessor data
+                            if len(predecessor_person) > 6:
+                                x_depth, y_depth, z_depth = check_deviation_of_depth_coords(predecessor_person, x_center, y_center, x_depth, y_depth, z_depth)
+                            if (abs(predecessor_person[-1][0]-x_center) < 50) and (abs(predecessor_person[-1][1]-y_center) < 50) and (abs(predecessor_person[-1][2]-x_depth) < 0.500) and (abs(predecessor_person[-1][3]-y_depth) < 0.500) and (abs(predecessor_person[-1][4]-z_depth) < 1.000):
                                 p_time = time.monotonic()
                                 # if it is not a "hole" value (depth measurement error), add new coordinates of an object
                                 if x_depth != 0 or y_depth != 0:
-                                    predecersor_person[1] = p_time
-                                    predecersor_person.append((x_center, y_center, x_depth, y_depth, z_depth))    # 
-                                if len(predecersor_person) > 7:  # leave only the last three positions of the person needed to calculate the direction of movement
-                                    del predecersor_person[4]
-                                is_person_on_the_list = False
+                                    predecessor_person[1] = p_time
+                                    predecessor_person.append((x_center, y_center, x_depth, y_depth, z_depth))    # 
+                                if len(predecessor_person) > 7:  # leave only the last three positions of the person needed to calculate the direction of movement
+                                    del predecessor_person[4]
+                                person_not_found = False
                                 continue
                             elif person_index < len(persons)-1:   # try to get next object from the list
                                 person_index += 1
-                            else:            # append a new object
-                                # if it is not a "hole" value (depth measurement error), add a new object
+                            # if a predecessor of the object (person) is not found in the list of persons, append a new object (person)
+                            else:            
+                                # check if it is not a "hole" value (depth measurement error)
                                 if not_street and (x_depth != 0 or y_depth != 0) and z_depth != 0:    # for very close distances
                                     p_time = time.monotonic()
                                     person_id += 1
                                     persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])   # append coordinates to the list as a new object position 
-                                    is_person_on_the_list = False
+                                    person_not_found = False
                                 elif z_depth > 5:        # for real life
                                     p_time = time.monotonic()
                                     person_id += 1
                                     persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])   # append coordinates to the list as a new object position 
-                                    is_person_on_the_list = False
+                                    person_not_found = False
                     elif object_label == "person":     # append the first object
                         p_time = time.monotonic()
                         # append obj id, last possition detection time, extrapolation line parameters(p0,pn,v), intersection point coords and obj id-s, spatial position
@@ -358,7 +364,7 @@ if __name__=="__main__":
                     
                     persons = clean_redundant_data(persons, current_time)
                     
-                    write_id_in_frame(persons)
+                    write_id_in_frame(persons, frame)
                     
                     
                     # updates car_id and time and its last position in the frame
@@ -403,7 +409,7 @@ if __name__=="__main__":
         
                     cars = clean_redundant_data(cars, current_time)  
           
-                    write_id_in_frame(cars)
+                    write_id_in_frame(cars, frame)
           
                     
                     # print selected data from trackers
@@ -480,7 +486,7 @@ if __name__=="__main__":
                                                 # raise an alarm or print a reassuring message    
                                                 alarm_device(alarm_flag_p, alarm_flag_c, predecersor_person[0], c[0])
     
-                                # draw in the frame a line connecting each pair of a person and a car for which time_to_collision is computed
+                                # in the frame, draw a line connecting each person-car pair for which the time_to_collision is calculated
                                 if predecersor_person[3]: 
                                     for crash in predecersor_person[3]:
                                         if crash[4][1] != 0:  # time to collision
@@ -494,7 +500,6 @@ if __name__=="__main__":
         
         
         
-                cv2.putText(frame, "NN fps: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
                 cv2.imshow("rgb", frame)
                 out.write(frame)
         
