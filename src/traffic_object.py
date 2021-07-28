@@ -1,7 +1,7 @@
 import depthai as dai
 
 class TrafficObject:
-    def __init__(self):
+    def __init__(self, detection, frame):
         self.x_max = 0
         self.y_max = 0
         self.y_min = 0

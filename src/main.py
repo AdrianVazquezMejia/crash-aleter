@@ -143,25 +143,18 @@ def delete_unnecessary_crash_points(crashpoints, objects_heading_2_collision):
 
    
 def draw_data_on_frame(frame, detection):
-    height = frame.shape[0]
-    width  = frame.shape[1]
-
-    x_min = int(detection.xmin * width)
-    x_max = int(detection.xmax * width)
-    y_min = int(detection.ymin * height)
-    y_max = int(detection.ymax * height)
-    #gets the center point of a bounding box
-    x_center, y_center = (x_max+x_min)//2, (y_max+y_min)//2
-
-    # get value of spatial coords in meters
-    x_depth = int(detection.spatialCoordinates.x) / 1000
-    y_depth = int(detection.spatialCoordinates.y) / 1000
-    z_depth = int(detection.spatialCoordinates.z) / 1000
-
-    try:
-        object_label = labelMap[detection.label]
-    except:
-        object_label = detection.label
+    global height
+    global width
+    global x_min
+    global x_max 
+    global y_min 
+    global y_max 
+    global x_center
+    global y_center
+    global x_depth 
+    global y_depth 
+    global z_depth
+    global object_label
         
     cv2.putText(frame, str(object_label), (x_min + 10, y_min + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
     cv2.putText(frame, "{:.2f}".format(detection.confidence*100), (x_min + 10, y_min + 35), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
