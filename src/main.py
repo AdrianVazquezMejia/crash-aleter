@@ -497,6 +497,8 @@ if __name__=="__main__":
                                                     person_2d_pos = (predecersor_person[6][0],predecersor_person[6][1])
                                                     #TODO: pobrac wspol. przestrzenne do wykresu
                                                     cv2.line(frame, person_2d_pos, car_2d_pos, (255,0,0), 1)
+                                                    if crash[4][1] < 1:
+                                                        cv2.putText(frame, "ALARM! Bang!", (20, 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, (0,255,255))
         
         
         
