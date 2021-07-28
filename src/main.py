@@ -369,37 +369,37 @@ if __name__=="__main__":
                     
                     # updates car_id and time and its last position in the frame
                     if cars and (object_label == "car"):  # if list of cars is not empty and it's a car
-                        person_index = 0  #index of car in cars
-                        is_person_on_the_list = True
+                        car_index = 0  #index of car in cars
+                        car_not_found = True
                         # find if an object exist in the list, try until is not find
-                        while is_person_on_the_list:   
-                            predecersor_person = cars[person_index]  #predecessor data
-                            if len(predecersor_person) > 6:
-                                x_depth, y_depth, z_depth = check_deviation_of_depth_coords(predecersor_person, x_center, y_center, x_depth, y_depth, z_depth)
-                            if (abs(predecersor_person[-1][0]-x_center) < 50) and (abs(predecersor_person[-1][1]-y_center) < 50) and (abs(predecersor_person[-1][2]-x_depth) < 0.500) and (abs(predecersor_person[-1][3]-y_depth) < 0.500) and (abs(predecersor_person[-1][4]-z_depth) < 1.000):
+                        while car_not_found:   
+                            predecessor_car = cars[car_index]  #predecessor data
+                            if len(predecessor_car) > 6:
+                                x_depth, y_depth, z_depth = check_deviation_of_depth_coords(predecessor_car, x_center, y_center, x_depth, y_depth, z_depth)
+                            if (abs(predecessor_car[-1][0]-x_center) < 50) and (abs(predecessor_car[-1][1]-y_center) < 50) and (abs(predecessor_car[-1][2]-x_depth) < 0.500) and (abs(predecessor_car[-1][3]-y_depth) < 0.500) and (abs(predecessor_car[-1][4]-z_depth) < 1.000):
                                 p_time = time.monotonic()
                                 # if it is not a "hole" value (depth measurement error), add new coordinates of an object
                                 if x_depth != 0 or y_depth != 0:
-                                    predecersor_person[1] = p_time
-                                    predecersor_person.append((x_center, y_center, x_depth, y_depth, z_depth))    # 
-                                if len(predecersor_person) > 7:  # leave only the last three positions of the car needed to calculate the direction of movement
-                                    del predecersor_person[4]
-                                is_person_on_the_list = False
+                                    predecessor_car[1] = p_time
+                                    predecessor_car.append((x_center, y_center, x_depth, y_depth, z_depth))    # 
+                                if len(predecessor_car) > 7:  # leave only the last three positions of the car needed to calculate the direction of movement
+                                    del predecessor_car[4]
+                                car_not_found = False
                                 continue
-                            elif person_index < len(cars)-1:   # try to take next object from the list
-                                person_index += 1
+                            elif car_index < len(cars)-1:   # try to take next object from the list
+                                car_index += 1
                             else:            # append a new object
                                 # if it is not a "hole" value (depth measurement error), add a new object
                                 if not_street and (x_depth != 0 or y_depth != 0) and z_depth != 0:
                                     p_time = time.monotonic()
                                     car_id += 1
                                     cars.append([car_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])   # append coordinates to the list as a new object position 
-                                    is_person_on_the_list = False
+                                    car_not_found = False
                                 elif z_depth > 5:
                                     p_time = time.monotonic()
                                     car_id += 1
                                     cars.append([car_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])   # append coordinates to the list as a new object position 
-                                    is_person_on_the_list = False
+                                    car_not_found = False
                     elif object_label == "car":     # append the first object
                         p_time = time.monotonic()
                         if not_street and (x_depth != 0 or y_depth != 0) and z_depth != 0:
