@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import os
 
 from alarm_device import alarm_device
+from logger import build_logger
 
 import logging
 
@@ -163,7 +164,8 @@ def draw_data_on_frame(frame, detection):
 '''
 
 if __name__=="__main__":
-
+    log = build_logger()
+    log.debug("Test of log to file")
     if len(sys.argv) > 1:
         nnBlobPath = sys.argv[1]
     
