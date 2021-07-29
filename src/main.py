@@ -144,18 +144,7 @@ def delete_unnecessary_crash_points(crashpoints, objects_heading_2_collision):
     return crashpoints
 
 def draw_data_on_frame(frame, detection):
-    global height
-    global width
-    global x_min
-    global x_max 
-    global y_min 
-    global y_max 
-    global x_center
-    global y_center
-    global x_depth 
-    global y_depth 
-    global z_depth
-    global object_label
+
 
     cv2.putText(frame, str(object_label), (x_min + 10, y_min + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
     cv2.putText(frame, "{:.2f}".format(detection.confidence*100), (x_min + 10, y_min + 35), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
@@ -317,7 +306,7 @@ if __name__=="__main__":
                     
                     # Draw data in the frame
                     if object_label in valid_objects:
-                        frame = draw_data_on_frame(frame, detection, object_label, fps, x_min, x_max, y_min, y_max, x_center, y_center, x_depth, y_depth, z_depth)
+                        frame = draw_data_on_frame(frame, detection)
         
         #---start tracking---------------- 
                     # updates person_id and localization in the frame
