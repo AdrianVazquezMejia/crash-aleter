@@ -21,7 +21,7 @@ syncNN = True
 
 nnBlobPath = str((Path(__file__).parent / Path('../models/mobilenet.blob')).resolve().absolute())
 
-not_street = False   # 'False' for real life distances, I mean street. 'True' for experiments with toys.
+not_street = False   # 'True' for experiments with miniatures.  'False' for real life distances.
 
 valid_objects = ["car", "person"]
 
@@ -158,6 +158,54 @@ def draw_data_on_frame(frame, detection):
     
     return frame 
  
+
+# Tracking persons or cars ; e.g.: track_object(cars, 'car', car_id, object_label, x_center, y_center, x_depth, y_depth, z_depth, not_street)
+def track_object(object_list, object_name, object_id, object_label, x_center, y_center, x_depth, y_depth, z_depth, not_street):
+    # updates object id and localization in the frame
+    if len(object_list) > 0 and (object_label == object_name):  # if object_list is not empty and it's that object name ('person' or 'car')
+        object_index = 0  #index of an object in object_list
+        object_not_found = True
+        # Check if the object is already on the list. Keep trying until the object is found or the list is over.
+        while object_not_found:   
+            predecessor_object = object_list[object_index]  #predecessor data
+            if len(predecessor_object) > 6:
+                x_depth, y_depth, z_depth = check_deviation_of_depth_coords(predecessor_object, x_center, y_center, x_depth, y_depth, z_depth)
+            if (abs(predecessor_object[-1][0]-x_center) < 50) and (abs(predecessor_object[-1][1]-y_center) < 50) and (abs(predecessor_object[-1][2]-x_depth) < 0.500) and (abs(predecessor_object[-1][3]-y_depth) < 0.500) and (abs(predecessor_object[-1][4]-z_depth) < 1.000):
+                p_time = time.monotonic()
+                # if it is not a "hole" value (depth measurement error), add new coordinates of an object
+                if x_depth != 0 or y_depth != 0:
+                    predecessor_object[1] = p_time
+                    predecessor_object.append((x_center, y_center, x_depth, y_depth, z_depth))    # 
+                if len(predecessor_object) > 7:  # leave only the last three positions of the object, needed to calculate the direction of movement
+                    del predecessor_object[4]
+                object_not_found = False
+                continue
+            elif object_index < len(object_list)-1:   # try to get next object from the list
+                object_index += 1
+            # if a predecessor of the object is not found in the object_list, append a new object 
+            else:            
+                # check if it is not a "hole" value (depth measurement error)
+                if not_street and (x_depth != 0 or y_depth != 0) and z_depth != 0:    # for very close distances
+                    p_time = time.monotonic()
+                    object_id += 1
+                    object_list.append([object_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])   # append coordinates to the list as a new object position 
+                    object_not_found = False
+                elif z_depth > 5:        # for real life
+                    p_time = time.monotonic()
+                    object_id += 1
+                    object_list.append([object_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])   # append coordinates to the list as a new object position 
+                    object_not_found = False
+    elif object_label == object_name:     # append the first object
+        p_time = time.monotonic()
+        # append obj id, last possition detection time, extrapolation line parameters(p0,pn,v), intersection point coords and obj id-s, spatial position
+        if not_street and (x_depth != 0 or y_depth != 0) and z_depth != 0:
+            object_list.append([object_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])
+        elif z_depth > 5: # if distance from the cam is bigger then 5m
+            object_list.append([object_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])
+
+    return object_list, object_id
+
+
 
 '''
     Performs inference on RGB camera and retrieves spatial location coordinates: x,y,z relative to the center of depth map.
@@ -310,98 +358,17 @@ if __name__=="__main__":
                     if object_label in valid_objects:
                         frame = draw_data_on_frame(frame, detection)
         
-        #---start tracking---------------- 
-                    # updates person_id and localization in the frame
-                    if len(persons) > 0 and (object_label == valid_objects[1]):  # if list of persons is not empty and it's a person
-                        person_index = 0  #index of person in persons
-                        person_not_found = True
-                        # Check if the object(person) is already on the list. Keep trying until the object is found or the list is over.
-                        while person_not_found:   
-                            predecessor_person = persons[person_index]  #predecessor data
-                            if len(predecessor_person) > 6:
-                                x_depth, y_depth, z_depth = check_deviation_of_depth_coords(predecessor_person, x_center, y_center, x_depth, y_depth, z_depth)
-                            if (abs(predecessor_person[-1][0]-x_center) < 50) and (abs(predecessor_person[-1][1]-y_center) < 50) and (abs(predecessor_person[-1][2]-x_depth) < 0.500) and (abs(predecessor_person[-1][3]-y_depth) < 0.500) and (abs(predecessor_person[-1][4]-z_depth) < 1.000):
-                                p_time = time.monotonic()
-                                # if it is not a "hole" value (depth measurement error), add new coordinates of an object
-                                if x_depth != 0 or y_depth != 0:
-                                    predecessor_person[1] = p_time
-                                    predecessor_person.append((x_center, y_center, x_depth, y_depth, z_depth))    # 
-                                if len(predecessor_person) > 7:  # leave only the last three positions of the person needed to calculate the direction of movement
-                                    del predecessor_person[4]
-                                person_not_found = False
-                                continue
-                            elif person_index < len(persons)-1:   # try to get next object from the list
-                                person_index += 1
-                            # if a predecessor of the object (person) is not found in the list of persons, append a new object (person)
-                            else:            
-                                # check if it is not a "hole" value (depth measurement error)
-                                if not_street and (x_depth != 0 or y_depth != 0) and z_depth != 0:    # for very close distances
-                                    p_time = time.monotonic()
-                                    person_id += 1
-                                    persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])   # append coordinates to the list as a new object position 
-                                    person_not_found = False
-                                elif z_depth > 5:        # for real life
-                                    p_time = time.monotonic()
-                                    person_id += 1
-                                    persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])   # append coordinates to the list as a new object position 
-                                    person_not_found = False
-                    elif object_label == "person":     # append the first object
-                        p_time = time.monotonic()
-                        # append obj id, last possition detection time, extrapolation line parameters(p0,pn,v), intersection point coords and obj id-s, spatial position
-                        if not_street and (x_depth != 0 or y_depth != 0) and z_depth != 0:
-                            persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])
-                        elif z_depth > 5: # if distance from the cam is bigger then 5m
-                            persons.append([person_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])
-                    
+        #---tracking---------------- 
+        
+                    persons, person_id = track_object(persons, 'person', person_id, object_label, x_center, y_center, x_depth, y_depth, z_depth, not_street)
                     persons = clean_redundant_data(persons, current_time)
-                    
                     write_id_in_frame(persons, frame)
                     
                     
-                    # updates car_id and time and its last position in the frame
-                    if cars and (object_label == "car"):  # if list of cars is not empty and it's a car
-                        car_index = 0  #index of car in cars
-                        car_not_found = True
-                        # find if an object exist in the list, try until is not find
-                        while car_not_found:   
-                            predecessor_car = cars[car_index]  #predecessor data
-                            if len(predecessor_car) > 6:
-                                x_depth, y_depth, z_depth = check_deviation_of_depth_coords(predecessor_car, x_center, y_center, x_depth, y_depth, z_depth)
-                            if (abs(predecessor_car[-1][0]-x_center) < 50) and (abs(predecessor_car[-1][1]-y_center) < 50) and (abs(predecessor_car[-1][2]-x_depth) < 0.500) and (abs(predecessor_car[-1][3]-y_depth) < 0.500) and (abs(predecessor_car[-1][4]-z_depth) < 1.000):
-                                p_time = time.monotonic()
-                                # if it is not a "hole" value (depth measurement error), add new coordinates of an object
-                                if x_depth != 0 or y_depth != 0:
-                                    predecessor_car[1] = p_time
-                                    predecessor_car.append((x_center, y_center, x_depth, y_depth, z_depth))    # 
-                                if len(predecessor_car) > 7:  # leave only the last three positions of the car needed to calculate the direction of movement
-                                    del predecessor_car[4]
-                                car_not_found = False
-                                continue
-                            elif car_index < len(cars)-1:   # try to take next object from the list
-                                car_index += 1
-                            else:            # append a new object
-                                # if it is not a "hole" value (depth measurement error), add a new object
-                                if not_street and (x_depth != 0 or y_depth != 0) and z_depth != 0:
-                                    p_time = time.monotonic()
-                                    car_id += 1
-                                    cars.append([car_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])   # append coordinates to the list as a new object position 
-                                    car_not_found = False
-                                elif z_depth > 5:
-                                    p_time = time.monotonic()
-                                    car_id += 1
-                                    cars.append([car_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])   # append coordinates to the list as a new object position 
-                                    car_not_found = False
-                    elif object_label == "car":     # append the first object
-                        p_time = time.monotonic()
-                        if not_street and (x_depth != 0 or y_depth != 0) and z_depth != 0:
-                            cars.append([car_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])
-                        elif z_depth > 5: # distance from the cam is bigger then 5m
-                            cars.append([car_id, p_time, ([0,0,0],[0,0,0],[0,0,0]), [], (x_center, y_center, x_depth, y_depth, z_depth)])
-        
+                    cars, car_id = track_object(cars, 'car', car_id, object_label, x_center, y_center, x_depth, y_depth, z_depth, not_street)
                     cars = clean_redundant_data(cars, current_time)  
-          
                     write_id_in_frame(cars, frame)
-          
+        #---------------------------
                     
                     # print selected data from trackers
                     print('IN FRAME:')
@@ -428,7 +395,7 @@ if __name__=="__main__":
                             pp = pp0 + v 
                             person[2] = (pp0, pp, v)  
                     
-                    # COMPUTE AN INTERSECTION/CRASH POINT IN GIVEN FRAME. 
+                    # COMPUTE AN INTERSECTION/CRASH POINT IN A GIVEN FRAME. 
                     # calculations for each pair a car-person
                     if len(cars) != 0 and len(persons) != 0:   # if there is a car and a person detected
                         print('Searching for Pedestrian-Car Crossing Point...')
