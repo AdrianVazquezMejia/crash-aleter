@@ -42,6 +42,7 @@ def write_id_in_frame(objects, frame):
     for obj in objects:
         id, point = obj[0], (obj[-1][0], obj[-1][1] - 10)
         cv2.putText(frame, f"{id}", point, cv2.FONT_HERSHEY_TRIPLEX, 0.5, (0,0,255))
+        
     return 
 
   
@@ -86,17 +87,18 @@ def print_data_of_detected(obj_list, obj_name):
     if obj_name == "person":
         oppos_id = "car"
     if obj_list:
-        for predecersor_person in obj_list:
-            print(f'  <{obj_name}_{predecersor_person[0]}>  3Dpos1:{predecersor_person[2][0]}, 3Dlast_pos:{predecersor_person[2][1]}')                                # t:{predecersor_person[1]}, dir_vect:{predecersor_person[2][2]}')
-            if predecersor_person[3]:
-                for e in predecersor_person[3]:
-                    print(f'       intersect_coords: {e[0]},  intersect with {oppos_id}_{e[1]}')                        #, detect_time:{e[3]:.3f}')
-                    print(f'       distance2collision_point: {e[2]:.3f},  ({obj_name}_speed, time2crash): {e[4]}')      #, last_pos:{e[5]}')
-            if len(predecersor_person) == 7: print(f'       all_coords>  pos1:{predecersor_person[4]},  pos2:{predecersor_person[5]},  last_pos:{predecersor_person[6]}')
-            if len(predecersor_person) == 6: print(f'       all_coords>  pos1:{predecersor_person[4]},  pos2:{predecersor_person[5]}')
-            if len(predecersor_person) == 5: print(f'       all_coords>  pos1:{predecersor_person[4]}')
+        for predecessor_person in obj_list:
+            print(f'  <{obj_name}_{predecessor_person[0]}>:')    
+            if predecessor_person[3]:
+                for e in predecessor_person[3]:
+                    print(f'       possible collision with {oppos_id}_{e[1]}:')  
+                    print(f'          distance2collision: {e[2]:.2f}m,  {obj_name}_speed: {e[4][0]:.2f}m/s, {obj_name}_time2crash: {e[4][1]:.3f}s') 
+            if len(predecessor_person) == 7: print(f'       {obj_name}_all_coords>  pos1:{predecessor_person[4]},  pos2:{predecessor_person[5]},  last_pos:{predecessor_person[6]}')
+            if len(predecessor_person) == 6: print(f'       {obj_name}_all_coords>  pos1:{predecessor_person[4]},  pos2:{predecessor_person[5]}')
+            if len(predecessor_person) == 5: print(f'       {obj_name}_all_coords>  pos1:{predecessor_person[4]}')
     else:
         print(f'No {obj_name} in the designated field.')
+
 
         
         
@@ -304,7 +306,7 @@ if __name__=="__main__":
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         
         out = cv2.VideoWriter("out.mp4", fourcc, 30, (300, 300), True)
-        #out = cv2.VideoWriter('out.mp4', 0x00000021, 10, (300,300))
+
         while True:
             try:
                 inPreview = previewQueue.get()
@@ -352,7 +354,6 @@ if __name__=="__main__":
                     #fill out the checking list
                     detections_list.append((bb_number, object_label, x_center, y_center, x_depth, y_depth, z_depth))
                     bb_number += 1
-                    print(f'\nF>{operation_count}, ct>{current_time}, Detected : {detections_list}')
                     
                     # Draw data in the frame
                     if object_label in valid_objects:
@@ -370,93 +371,95 @@ if __name__=="__main__":
                     write_id_in_frame(cars, frame)
         #---------------------------
                     
-                    # print selected data from trackers
-                    print('IN FRAME:')
-                    print_data_of_detected(persons, 'person')
-                    print_data_of_detected(cars, 'car')
+                print(f'\nF>{operation_count}, ct>{current_time}, Detected : {detections_list}')
+                # print selected data from trackers
+                print('IN FRAME:')
+                print_data_of_detected(persons, 'person')
+                print_data_of_detected(cars, 'car')
        
                      
-                    # COMPUTE AN OBJECT MOVEMENT DIRECTION LINE
-                    # add to the data array first and last point of object position and a line direction vector
-                    for car in cars:
-                        if len(car) > 5:   # if there are in car at least two tuples with coords
-                            # get the first and the last spacial position of a car
-                            (X0,Y0,Z0), (X2,Y2,Z2) = car[4][2:], car[-1][2:]  
-                            cp0 = np.array([X0,Y0,Z0])
-                            v = np.array([X2 - X0, Y2 - Y0, Z2 - Z0])  #direction vector
-                            cp = cp0 + v  
-                            car[2] = (cp0, cp, v)   # append two points on the line of a car movement and the direction vector
-                    for person in persons:
-                        if len(person) > 5:  
-                            # get the first and the last spacial position of a person
-                            (X0,Y0,Z0), (X2,Y2,Z2) = person[4][2:], person[-1][2:]  
-                            pp0 = np.array([X0,Y0,Z0])  # point zero == first from the last three person's positions
-                            v = np.array([X2 - X0, Y2 - Y0, Z2 - Z0])
-                            pp = pp0 + v 
-                            person[2] = (pp0, pp, v)  
+                # COMPUTE AN OBJECT MOVEMENT DIRECTION LINE
+                # add to the data array first and last point of object position and a line direction vector
+                for car in cars:
+                    if len(car) > 5:   # if there are in car at least two tuples with coords
+                        # get the first and the last spacial position of a car
+                        (X0,Y0,Z0), (X2,Y2,Z2) = car[4][2:], car[-1][2:]  
+                        cp0 = np.array([X0,Y0,Z0])
+                        v = np.array([X2 - X0, Y2 - Y0, Z2 - Z0])  #direction vector
+                        cp = cp0 + v  
+                        car[2] = (cp0, cp, v)   # append two points on the line of a car movement and the direction vector
+                for person in persons:
+                    if len(person) > 5:  
+                        # get the first and the last spacial position of a person
+                        (X0,Y0,Z0), (X2,Y2,Z2) = person[4][2:], person[-1][2:]  
+                        pp0 = np.array([X0,Y0,Z0])  # point zero == first from the last three person's positions
+                        v = np.array([X2 - X0, Y2 - Y0, Z2 - Z0])
+                        pp = pp0 + v 
+                        person[2] = (pp0, pp, v)  
                     
-                    # COMPUTE AN INTERSECTION/CRASH POINT IN A GIVEN FRAME. 
-                    # calculations for each pair a car-person
-                    if len(cars) != 0 and len(persons) != 0:   # if there is a car and a person detected
-                        print('Searching for Pedestrian-Car Crossing Point...')
-                        for c in cars:
-                            if len(c) > 6:
-                                c[3] = delete_unnecessary_crash_points(c[3], persons)
-                                for predecersor_person in persons:
-                                    if len(predecersor_person) > 6:
-                                        predecersor_person[3] = delete_unnecessary_crash_points(predecersor_person[3], cars)  # update crash points list
-                                        ## if the set of coefficients of the direction vectors of two lines, car and person routs, are proportional these lines are parallel to each other
-                                        #and their direction vectors Cross Product equals 0
-                                        if any(np.cross(c[2][2], predecersor_person[2][2])):         
-                                            # get a point on the car's line and its direction vector coefficients 
-                                            x_1, a_1, y_1, b_1, z_1, c_1 = c[2][0][0], c[2][2][0], c[2][0][1], c[2][2][1], c[2][0][2], c[2][2][2]
-                                            # Get a normal vector of a person's plane
-                                            n = np.cross(predecersor_person[2][2], np.array([0, 10, 0]))
-                                            nx, ny, nz = n[0], n[1], n[2]
-                                            # get a point zero on the person's plane
-                                            x0, y0, z0 = predecersor_person[2][0][0], predecersor_person[2][0][1], predecersor_person[2][0][2] #coords of pp0
-                                            d = -(nx*x0 + ny*y0 + nz*z0)
-                                            # find car's line t coefficient
-                                            if (nx*a_1 + ny*b_1 + nz*c_1) != 0:
-                                                t = -(d + nx*x_1 + ny*y_1 + nz*z_1) / (nx*a_1 + ny*b_1 + nz*c_1)
-                                                # intersection point
-                                                xi = (a_1*t + x_1)
-                                                yi = (b_1*t + y_1)
-                                                zi = (c_1*t + z_1)
-                                                # distance to the crash point:
-                                                p_distance = np.sqrt(sum(e**2 for e in (np.array([xi, yi, zi]) - predecersor_person[2][1])))  # pedestrian
-                                                c_distance = np.sqrt(sum(e**2 for e in (np.array([xi, yi, zi]) - c[2][1])))  # car
-                                                p_last_pos = predecersor_person[2][1]  # last position of a pedestrian                                        
-                                                p_time = predecersor_person[1]         # the time of detecting the last position of a pedestrian
-                                                # insert intersection coords, an id of a car the person can collide with, distance to the hypothetical crash point etc.:
-                                                alarm_flag_p, predecersor_person[3] = replace_insert_crashdata(predecersor_person[3], [np.array([xi, yi, zi]), c[0], p_distance, p_time, (0, 0), p_last_pos])
+                # COMPUTE AN INTERSECTION/CRASH POINT IN GIVEN FRAME. 
+                # calculations for each pair a car-person
+                if len(cars) != 0 and len(persons) != 0:   # if there is a car and a person detected
+                    print('Searching for Pedestrian-Car Crash Point...')
+                    for c in cars:
+                        if len(c) > 6:
+                            c[3] = delete_unnecessary_crash_points(c[3], persons)
+                            for predecessor_person in persons:
+                                if len(predecessor_person) > 6:
+                                    predecessor_person[3] = delete_unnecessary_crash_points(predecessor_person[3], cars)  # update crash points list
+                                    ## if the set of coefficients of the direction vectors of two lines, car and person routs, are proportional these lines are parallel to each other
+                                    #and their direction vectors Cross Product equals 0
+                                    if any(np.cross(c[2][2], predecessor_person[2][2])):         
+                                        # get a point on the car's line and its direction vector coefficients 
+                                        x_1, a_1, y_1, b_1, z_1, c_1 = c[2][0][0], c[2][2][0], c[2][0][1], c[2][2][1], c[2][0][2], c[2][2][2]
+                                        # Get a normal vector of a person's plane
+                                        n = np.cross(predecessor_person[2][2], np.array([0, 10, 0]))
+                                        nx, ny, nz = n[0], n[1], n[2]
+                                        # get a point zero on the person's plane
+                                        x0, y0, z0 = predecessor_person[2][0][0], predecessor_person[2][0][1], predecessor_person[2][0][2] #coords of pp0
+                                        d = -(nx*x0 + ny*y0 + nz*z0)
+                                        # find car's line t coefficient
+                                        if (nx*a_1 + ny*b_1 + nz*c_1) != 0:
+                                            t = -(d + nx*x_1 + ny*y_1 + nz*z_1) / (nx*a_1 + ny*b_1 + nz*c_1)
+                                            # intersection point
+                                            xi = (a_1*t + x_1)
+                                            yi = (b_1*t + y_1)
+                                            zi = (c_1*t + z_1)
+                                            # distance to the crash point:
+                                            p_distance = np.sqrt(sum(e**2 for e in (np.array([xi, yi, zi]) - predecessor_person[2][1])))  # pedestrian
+                                            c_distance = np.sqrt(sum(e**2 for e in (np.array([xi, yi, zi]) - c[2][1])))  # car
+                                            p_last_pos = predecessor_person[2][1]  # last position of a pedestrian                                        
+                                            p_time = predecessor_person[1]         # the time of detecting the last position of a pedestrian
+                                            # insert intersection coords, an id of a car the person can collide with, distance to the hypothetical crash point etc.:
+                                            alarm_flag_p, predecessor_person[3] = replace_insert_crashdata(predecessor_person[3], [np.array([xi, yi, zi]), c[0], p_distance, p_time, (0, 0), p_last_pos])
     
-                                                print(f'    Person{predecersor_person[0]} Alarm Flag: {alarm_flag_p}')
+                                            print(f'    Person{predecessor_person[0]} -> Alarm Flag: {alarm_flag_p}')
     
-                                                # insert intersection coords, an id of a person the car can collide with, distance to the hypothetical crash point etc.:
-                                                alarm_flag_c, c[3] = replace_insert_crashdata(c[3], [np.array([xi, yi, zi]), predecersor_person[0], c_distance, c[1], (0, 0), c[2][1]])
+                                            # insert intersection coords, an id of a person the car can collide with, distance to the hypothetical crash point etc.:
+                                            alarm_flag_c, c[3] = replace_insert_crashdata(c[3], [np.array([xi, yi, zi]), predecessor_person[0], c_distance, c[1], (0, 0), c[2][1]])
     
-                                                print(f'    Car{c[0]} Alarm Flag: {alarm_flag_c}')
+                                            print(f'    Car{c[0]}    -> Alarm Flag: {alarm_flag_c}')
+                                            print("    ---")
     
-                                                ## ALARM
-                                                if alarm_flag_p and alarm_flag_c:
-                                                    print(f'ALARM!!! ALARM!!! Person{predecersor_person[0]} is going to collide with Car{c[0]}')   
-                                                # raise an alarm or print a reassuring message    
-                                                alarm_device(alarm_flag_p, alarm_flag_c, predecersor_person[0], c[0])
+                                            ## ALARM
+                                            if alarm_flag_p and alarm_flag_c:
+                                                print(f'ALARM!!! ALARM!!! Person{predecessor_person[0]} is going to collide with Car{c[0]}')   
+                                            # raise an alarm or print a reassuring message    
+                                            alarm_device(alarm_flag_p, alarm_flag_c, predecessor_person[0], c[0])
     
-                                # in the frame, draw a line connecting each person-car pair for which the time_to_collision is calculated
-                                if predecersor_person[3]: 
-                                    for crash in predecersor_person[3]:
-                                        if crash[4][1] != 0:  # time to collision
-                                            carid = crash[1]  # id of the car involved in
-                                            for v in cars:    # v-vehicle
-                                                if v[0] == carid:
-                                                    car_2d_pos = (v[6][0],v[6][1])     # location in frame
-                                                    person_2d_pos = (predecersor_person[6][0],predecersor_person[6][1])
-                                                    #TODO: pobrac wspol. przestrzenne do wykresu
-                                                    cv2.line(frame, person_2d_pos, car_2d_pos, (255,0,0), 1)
-                                                    if crash[4][1] < 1:
-                                                        cv2.putText(frame, "PEDESTRIAN WARNING! Collision in less than 1sec!", (20, 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, (0,255,255))
+                            # draw in the frame a line connecting each pair of a person and a car for which time_to_collision is computed
+                            if predecessor_person[3]: 
+                                for crash in predecessor_person[3]:
+                                    if crash[4][1] != 0:  # time to collision
+                                        carid = crash[1]  # id of the car involved in
+                                        for v in cars:    # v-vehicle
+                                            if v[0] == carid:
+                                                car_2d_pos = (v[6][0],v[6][1])     # location in frame
+                                                person_2d_pos = (predecessor_person[6][0],predecessor_person[6][1])
+                                                #TODO: pobrac wspol. przestrzenne do wykresu
+                                                cv2.line(frame, person_2d_pos, car_2d_pos, (255,0,0), 1)
+                                                if crash[4][1] < 1:
+                                                    cv2.putText(frame, "Collision in 1sec!", (20, 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, (0,255,255))
         
         
         
