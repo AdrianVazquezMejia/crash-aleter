@@ -450,15 +450,14 @@ if __name__=="__main__":
                             # draw in the frame a line connecting each pair of a person and a car for which time_to_collision is computed
                             if predecessor_person[3]: 
                                 for crash in predecessor_person[3]:
-                                    if crash[4][1] != 0:  # time to collision
+                                    if crash[4][1] > 0:  # person's time to the collision
                                         carid = crash[1]  # id of the car involved in
                                         for v in cars:    # v-vehicle
-                                            if v[0] == carid:
+                                            if (v[0] == carid) and (len(v) > 6):
                                                 car_2d_pos = (v[6][0],v[6][1])     # location in frame
                                                 person_2d_pos = (predecessor_person[6][0],predecessor_person[6][1])
-                                                #TODO: pobrac wspol. przestrzenne do wykresu
                                                 cv2.line(frame, person_2d_pos, car_2d_pos, (255,0,0), 1)
-                                                if crash[4][1] < 1:
+                                                if (crash[4][1] < 1) and (crash[2] < 10):  # if person's time to the collision is less than 1sec and the distance is less than 10m
                                                     cv2.putText(frame, "Collision in 1sec!", (20, 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, (0,255,255))
         
         
