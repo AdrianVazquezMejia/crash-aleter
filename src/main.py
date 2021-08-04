@@ -91,11 +91,11 @@ def print_data_of_detected(obj_list, obj_name):
             print(f'  <{obj_name}_{predecessor_person[0]}>:')    
             if predecessor_person[3]:
                 for e in predecessor_person[3]:
-                    print(f'       Track crossing with {oppos_id}_{e[1]}:')  
+                    print(f'       trajectory crossing with path of {oppos_id}_{e[1]}:')  
                     print(f'          distance2collision: {e[2]:.2f}m,  {obj_name}_speed: {e[4][0]:.2f}m/s, {obj_name}_time2crash: {e[4][1]:.3f}s') 
-            if len(predecessor_person) == 7: print(f'       {obj_name}_all_coords>  pos1:{predecessor_person[4]},  pos2:{predecessor_person[5]},  last_pos:{predecessor_person[6]}')
-            if len(predecessor_person) == 6: print(f'       {obj_name}_all_coords>  pos1:{predecessor_person[4]},  pos2:{predecessor_person[5]}')
-            if len(predecessor_person) == 5: print(f'       {obj_name}_all_coords>  pos1:{predecessor_person[4]}')
+            if len(predecessor_person) == 7: print(f'       {obj_name}_adjusted_coords>  pos1:{predecessor_person[4]},  pos2:{predecessor_person[5]},  last_pos:{predecessor_person[6]}')
+            if len(predecessor_person) == 6: print(f'       {obj_name}_adjusted_coords>  pos1:{predecessor_person[4]},  pos2:{predecessor_person[5]}')
+            if len(predecessor_person) == 5: print(f'       {obj_name}_adjusted_coords>  pos1:{predecessor_person[4]}')
     else:
         print(f'No {obj_name} in the designated field.')
 
@@ -124,7 +124,7 @@ def replace_insert_crashdata(collide_list, new_intersect):
                 else: time_to_collision = 0.0
                 crash_event[3] = new_intersect[3]   # time of detection the last position
                 crash_event[4] = (speed, time_to_collision)
-                if time_to_collision < 1 and time_to_collision > 0:   # if time to collision < 1sec
+                if time_to_collision < 2 and time_to_collision > 0:   # if time to collision < 2sec
                     alarm_flag = True
                 not_found = False
                 continue
@@ -372,10 +372,7 @@ if __name__=="__main__":
         #---------------------------
                     
                 print(f'\nF>{operation_count}, ct>{current_time}, Detected : {detections_list}')
-                # print selected data from trackers
                 print('IN FRAME:')
-                print_data_of_detected(persons, 'person')
-                print_data_of_detected(cars, 'car')
        
                      
                 # COMPUTE AN OBJECT MOVEMENT DIRECTION LINE
@@ -447,7 +444,7 @@ if __name__=="__main__":
                                             # raise an alarm or print a reassuring message    
                                             alarm_device(alarm_flag_p, alarm_flag_c, predecessor_person[0], c[0])
     
-                            # draw in the frame a line connecting each pair of a person and a car for which time_to_collision is computed
+                            # draw in the frame a line connecting each pair of a person and a car, when person's time_to_collision is computed
                             if predecessor_person[3]: 
                                 for crash in predecessor_person[3]:
                                     if crash[4][1] > 0:  # person's time to the collision
@@ -457,10 +454,12 @@ if __name__=="__main__":
                                                 car_2d_pos = (v[6][0],v[6][1])     # location in frame
                                                 person_2d_pos = (predecessor_person[6][0],predecessor_person[6][1])
                                                 cv2.line(frame, person_2d_pos, car_2d_pos, (255,0,0), 1)
-                                                if (crash[4][1] < 1) and (crash[2] < 10):  # if person's time to the collision is less than 1sec and the distance is less than 10m
+                                                if (crash[4][1] < 2) and (crash[2] < 10):  # if person's time to the collision is less than 2sec and the distance is less than 10m
                                                     cv2.putText(frame, "Collision in 1sec!", (20, 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, (0,255,255))
         
-        
+                # print selected data from trackers
+                print_data_of_detected(persons, 'person')
+                print_data_of_detected(cars, 'car')        
         
                 cv2.imshow("rgb", frame)
                 out.write(frame)
