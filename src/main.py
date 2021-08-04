@@ -91,7 +91,7 @@ def print_data_of_detected(obj_list, obj_name):
             print(f'  <{obj_name}_{predecessor_person[0]}>:')    
             if predecessor_person[3]:
                 for e in predecessor_person[3]:
-                    print(f'       possible collision with {oppos_id}_{e[1]}:')  
+                    print(f'       Track crossing with {oppos_id}_{e[1]}:')  
                     print(f'          distance2collision: {e[2]:.2f}m,  {obj_name}_speed: {e[4][0]:.2f}m/s, {obj_name}_time2crash: {e[4][1]:.3f}s') 
             if len(predecessor_person) == 7: print(f'       {obj_name}_all_coords>  pos1:{predecessor_person[4]},  pos2:{predecessor_person[5]},  last_pos:{predecessor_person[6]}')
             if len(predecessor_person) == 6: print(f'       {obj_name}_all_coords>  pos1:{predecessor_person[4]},  pos2:{predecessor_person[5]}')
@@ -433,12 +433,12 @@ if __name__=="__main__":
                                             # insert intersection coords, an id of a car the person can collide with, distance to the hypothetical crash point etc.:
                                             alarm_flag_p, predecessor_person[3] = replace_insert_crashdata(predecessor_person[3], [np.array([xi, yi, zi]), c[0], p_distance, p_time, (0, 0), p_last_pos])
     
-                                            print(f'    Person{predecessor_person[0]} -> Alarm Flag: {alarm_flag_p}')
+                                            print(f'    Person{predecessor_person[0]} -> Possible collision: {alarm_flag_p}')
     
                                             # insert intersection coords, an id of a person the car can collide with, distance to the hypothetical crash point etc.:
                                             alarm_flag_c, c[3] = replace_insert_crashdata(c[3], [np.array([xi, yi, zi]), predecessor_person[0], c_distance, c[1], (0, 0), c[2][1]])
     
-                                            print(f'    Car{c[0]}    -> Alarm Flag: {alarm_flag_c}')
+                                            print(f'    Car{c[0]}    -> Possible collision: {alarm_flag_c}')
                                             print("    ---")
     
                                             ## ALARM
