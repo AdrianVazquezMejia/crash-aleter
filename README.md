@@ -10,7 +10,9 @@ In the project we tried to solve a few problems:
    - compute an intersection points for trajectories of many objects in three dimensional space,
    - calculating the speed of objects and determining whether there is a possibility of a collision for each pedestrian-vehicle pair,
    - alarm activation for one to two seconds before the collision,
-   - 
+   - building a system independent of the Internet or computer network, which could be mounted anywhere,
+      - setup the IoT application on a Raspberry Pi with OAK-D, 
+      - build a system connecting a microcomputer with transmitters and with a device emitting a warning signal. 
 
 ## Setup
 After cloning the this repository, go to the project folder and the follow
