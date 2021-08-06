@@ -305,7 +305,7 @@ if __name__=="__main__":
         operation_count = 0   # frame number
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         
-        out = cv2.VideoWriter("out.mp4", fourcc, 30, (300, 300), True)
+        out = cv2.VideoWriter("out.mp4", fourcc, 10, (300, 300), True)
 
         while True:
             try:
