@@ -14,6 +14,10 @@ In the project we tried to solve a few problems:
       - setup the IoT application on a Raspberry Pi with OAK-D, 
       - build a system connecting a microcomputer with transmitters and with a device emitting a warning signal. 
 
+Models:
+   For pedestrian and vehicle detection, we tested the use of models such as the Intel OpenVINO IR network person-vehicle-bike-intersection-1016 based on MobileNetV2 + SSD, pedestrian and vehicle detection network-adas-0001 based on MobileNet v1.0 + SSD, as well as the network mobilenet-ssd the same one that Luxonis uses in many tutorials. The latter network turned out to be the most useful for our purposes and we obtained the presented results with its use.
+   
+
 ## Setup
 After cloning the this repository, go to the project folder and the follow
 
